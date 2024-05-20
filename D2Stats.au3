@@ -22,6 +22,10 @@
 
 #include "defaultNotifyText.au3"
 
+;Begin Azadi
+#include "d2StatDescriptions.au3"
+;End Azadi
+
 #pragma compile(Icon, Assets/icon.ico)
 #pragma compile(FileDescription, Diablo II Stats reader)
 #pragma compile(ProductName, D2Stats)
@@ -288,7 +292,7 @@ func HotKey_DropFilter($TEST = False)
 
 	if ($hDropFilter) then
 		if (EjectDropFilter($hDropFilter)) then
-			PrintString("Ejected DropFilter.", $ePrintGreen)
+			PrintString("Ejected DropFilter.", $ePrintRed)
 			_Log("HotKey_DropFilter", "Ejected DropFilter.")
 		else
 			_Debug("HotKey_DropFilter", "Failed to eject DropFilter.")
@@ -332,7 +336,33 @@ func FixShowItemsOnEsc()
 endfunc
 
 func HotKey_ReadStats()
-	OnClick_ReadStats()
+	UpdateStatValues()
+	UpdateGUI()
+endfunc
+
+func CompareStats()
+	UpdateStatValues()
+	UpdateGUI()
+	
+	;Compare stats
+	local $statDiffCount = 0
+	local $g_statDiff[0][5]
+	for $i = 0 To 1023	
+		if ($g_aiStatsCacheCopy[0][$i] <> $g_aiStatsCache[0][$i]) then
+			_ArrayAdd($g_statDiff,$i&"|"&$g_d2StatNames[$i][0]&"|"&$g_aiStatsCacheCopy[0][$i]&"|"&$g_aiStatsCache[0][$i]&"|"&$g_aiStatsCache[0][$i]-$g_aiStatsCacheCopy[0][$i])
+			$statDiffCount += 1
+		endif
+		if ($g_aiStatsCacheCopy[1][$i] <> $g_aiStatsCache[1][$i]) then
+			_ArrayAdd($g_statDiff,$i&"|"&$g_d2StatNames[$i][1]&"|"&$g_aiStatsCacheCopy[1][$i]&"|"&$g_aiStatsCache[1][$i]&"|"&$g_aiStatsCache[1][$i]-$g_aiStatsCacheCopy[1][$i])
+			$statDiffCount += 1
+		endif
+	next
+	
+	if ($statDiffCount > 0) then
+		_ArrayDisplay($g_statDiff, "Stat diff", default, 32, @LF, "Stat ID|Name|Old|New|Diff")
+	endif
+	
+	CopyStatsArray()
 endfunc
 #EndRegion
 
@@ -389,7 +419,6 @@ func UpdateStatValues()
 		UpdateStatValueMem(0)
 		UpdateStatValueMem(1)
 		FixStats()
-		FixVeteranToken()
 		CalculateWeaponDamage()
 
 		; Poison damage to damage/second
@@ -412,6 +441,10 @@ func UpdateStatValues()
 		local $iFactor = Floor((GetStatValue(278) * GetStatValue(0, 1) + GetStatValue(485) * GetStatValue(1, 1)) / 3e6 * 100)
 		$g_aiStatsCache[1][904] = $iFactor > 100 ? 100 : $iFactor
 	endif
+endfunc
+
+func CopyStatsArray()
+	$g_aiStatsCacheCopy = $g_aiStatsCache
 endfunc
 
 func GetUnitWeapon($pUnit)
@@ -489,7 +522,8 @@ func FixStats() ; This game is stupid
 		$g_aiStatsCache[1][$i] = 0
 	next
 	$g_aiStatsCache[1][343] = 0 ; itemtype-specific EWD (Elfin Weapons, Shadow Dancer)
-
+	$g_aiStatsCache[1][74] = $g_aiStatsCache[1][74] / 10 ;Life regen
+	
 	local $pSkillsTxt = _MemoryRead($g_pD2sgpt + 0xB98, $g_ahD2Handle)
 	local $iSkillID, $pStats, $iStatCount, $pSkill, $iStatIndex, $iStatValue, $iOwnerType, $iStateID
 
@@ -593,44 +627,6 @@ func FixStats() ; This game is stupid
 	wend
 endfunc
 
-func FixVeteranToken()
-	$g_aiStatsCache[1][219] = 0 ; Veteran token
-
-	local $pUnitAddress = GetUnitToRead()
-
-	local $aiOffsets[3] = [0, 0x60, 0x0C]
-	local $pItem = _MemoryPointerRead($pUnitAddress, $g_ahD2Handle, $aiOffsets)
-
-	local $pItemData, $pStatsEx, $pStats, $iStatCount, $iStatIndex, $iVeteranTokenCounter
-
-	while $pItem
-		$pItemData = _MemoryRead($pItem + 0x14, $g_ahD2Handle)
-		$pStatsEx = _MemoryRead($pItem + 0x5C, $g_ahD2Handle)
-		$pItem = _MemoryRead($pItemData + 0x64, $g_ahD2Handle)
-		if (not $pStatsEx) then continueloop
-
-		$pStats = _MemoryRead($pStatsEx + 0x48, $g_ahD2Handle)
-		if (not $pStats) then continueloop
-
-		$iStatCount = _MemoryRead($pStatsEx + 0x4C, $g_ahD2Handle, "word")
-		$iVeteranTokenCounter = 0
-
-		for $i = 0 to $iStatCount - 1
-			$iStatIndex = _MemoryRead($pStats + $i*8 + 2, $g_ahD2Handle, "word")
-
-			switch $iStatIndex
-				case 83, 85, 219
-					$iVeteranTokenCounter += 1
-			endswitch
-		next
-
-		if ($iVeteranTokenCounter == 3) then
-			$g_aiStatsCache[1][219] = 1 ; Veteran token
-			return
-		endif
-	wend
-endfunc
-
 func GetStatValue($iStatID, $iVector = default)
 	if ($iVector == default) then $iVector = $iStatID < 4 ? 0 : 1
 	local $iStatValue = $g_aiStatsCache[$iVector][$iStatID]
@@ -675,8 +671,8 @@ func NotifierCache()
 		$sTier = "0"
 
 		if (_MemoryRead($pBaseAddr + 0x84, $g_ahD2Handle)) then ; Weapon / Armor
-			$asMatch = StringRegExp($sName, "[1-4]|\Q(Sacred)\E", $STR_REGEXPARRAYGLOBALMATCH)
-			if (not @error) then $sTier = $asMatch[0] == "(Sacred)" ? "sacred" : $asMatch[0]
+			$asMatch = StringRegExp($sName, "[1-4]|\Q(Sacred)\E|\Q(Angelic)\E", $STR_REGEXPARRAYGLOBALMATCH)
+			if (not @error) then $sTier = $asMatch[0] == "(Sacred)" ? "sacred" : $asMatch[0] == "(Angelic)" ? "angelic" : $asMatch[0]
 		endif
 
 		$g_avNotifyCache[$iClass][0] = $sName
@@ -1356,9 +1352,8 @@ func _GUI_NewItem($iLine, $sText, $sTip = default, $iColor = default)
 endfunc
 
 func _GUI_NewText($iLine, $sText, $sTip = default, $iColor = default)
-	local $idRet = _GUI_NewTextBasic($iLine, $sText)
+	local $idRet = _GUI_NewTextBasic($iLine, $sText, False)
 
-	; GUICtrlSetBkColor(-1, Random(0, 2147483647, 1))
 	if ($sTip <> default) then
 		GUICtrlSetTip(-1, StringReplace($sTip, "|", @LF), default, default, $TIP_CENTER)
 	endif
@@ -1508,18 +1503,20 @@ func UpdateGUI()
 		if ($iColor <> 0) then GUICtrlSetColor($idControl, $iColor)
 
 		$iWidth = _GUI_StringWidth($sText)
-		GUICtrlSetPos($idControl, $iX - $iWidth/2, default, $iWidth, default)
+		GUICtrlSetPos($idControl, $iX, default, $iWidth, default)
 	next
 endfunc
 
 func OnClick_ReadStats()
 	UpdateStatValues()
 	UpdateGUI()
+	CopyStatsArray()
 endfunc
 
 func OnClick_Tab()
-	local $iState = GUICtrlRead($g_idTab) < 2 ? $GUI_SHOW : $GUI_HIDE
+	local $iState = GUICtrlRead($g_idTab) < 3 ? $GUI_SHOW : $GUI_HIDE
 	GUICtrlSetState($g_idReadStats, $iState)
+	GUICtrlSetState($g_idShowDiff, $iState)
 	GUICtrlSetState($g_idReadMercenary, $iState)
 endfunc
 
@@ -1629,7 +1626,7 @@ func OnClick_NotifyHelp()
 		'If you''re unsure what regex is, use letters only.', _
 		'', _
 		'Flags:', _
-		'> 0-4 sacred - Item must be one of these tiers.', _
+		'> 0-4 sacred angelic - Item must be one of these tiers.', _
 		'   Tier 0 means untiered items (runes, amulets, etc).', _
 		'> normal superior rare set unique - Item must be one of these qualities.', _
 		'> name - To print type name and real name.', _
@@ -1810,8 +1807,8 @@ endfunc
 func CreateGUI()
 	;global $g_iGroupLines = 16
 	global $g_iGroupWidth = 110
-	global $g_iGroupXStart = 8 + $g_iGroupWidth/2
-	global $g_iGUIWidth = 16 + 4*$g_iGroupWidth
+	global $g_iGroupXStart = 8
+	global $g_iGUIWidth = 32 + 4*$g_iGroupWidth
 	global $g_iGUIHeight = 350
 
 	local $sTitle = not @Compiled ? "Test" : StringFormat("D2Stats %s - [%s]", FileGetVersion(@AutoItExe, "FileVersion"), FileGetVersion(@AutoItExe, "Comments"))
@@ -1822,10 +1819,13 @@ func CreateGUI()
 
 	local $iBottomButtonCoords = $g_iGUIHeight - 60
 
-	global $g_idReadStats = GUICtrlCreateButton("Read", $g_iGroupXStart-35, $iBottomButtonCoords, 70, 25)
+	global $g_idReadStats = GUICtrlCreateButton("Read", $g_iGroupXStart, $iBottomButtonCoords, 70, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_ReadStats")
+	
+	global $g_idShowDiff = GUICtrlCreateButton("Diff", $g_iGroupXStart + 78, $iBottomButtonCoords, 70, 25)
+	GUICtrlSetOnEvent(-1, "CompareStats")
 
-	global $g_idReadMercenary = GUICtrlCreateCheckbox("Mercenary", $g_iGroupXStart-35 + 78, $iBottomButtonCoords)
+	global $g_idReadMercenary = GUICtrlCreateCheckbox("Mercenary", $g_iGroupXStart + 156, $iBottomButtonCoords)
 
 	global $g_idTab = GUICtrlCreateTab(0, 0, $g_iGUIWidth, 0, $TCS_FOCUSNEVER)
 	GUICtrlSetOnEvent(-1, "OnClick_Tab")
@@ -1837,20 +1837,39 @@ func CreateGUI()
 	GUISetAccelerators($avAccelKeys)
 
 #Region Stats
+	;---TODO
+	;Create 3 tabs: Basic, Offense, Defense
+	;Group stats by category
+	;Rename stats to match in-game values
+	
+	GUICtrlCreateTabItem("Basic")
+	_GUI_GroupFirst()
+	_GUI_NewText(00, "Character data")
+	_GUI_NewItem(01, "Level: {012}")
+	_GUI_NewItem(02, "Experience: {013}")
+	
+	_GUI_NewItem(04, "Life: {006}")
+	_GUI_NewItem(05, "Mana: {008}")
+	_GUI_NewItem(06, "Stamina: {010}")
+
+	_GUI_NewItem(08, "Gold: {014}", "Max gold on character calculated from the following formula:|(CharacterLevel*10,000)")
+	_GUI_NewItem(09, "Stash: {015} [015:2500000/1000000]", "Max gold in stash is constant:|2,500,000")
+
+	_GUI_NewItem(10, "Signets: {185}/400 [185:400/400]", "Signets of Learning.|Each grants 1 stat point. Catalyst is not used up in craft. Can't mix sets and uniques while disenchanting.||Cube recipes:|Any sacred unique item x1-10 + Catalyst of Learning ? Signet of Learning x1-10|Any set item x1-10 + Catalyst of Learning ? Signet of Learning x1-10|Unique ring/amulet/jewel/quiver + Catalyst of Learning ? Signet of Learning")
+	_GUI_NewItem(11, "Charms: {356}/97 [356:97/97]","Charm counter|Value calculated by the following formula: (Charms+Relics)*2||Exceptions:|Ennead charm - 1pt|Sunstone of the Sunless Sea - 1pt, +1pt for all 3 scrolls|Riftwalker - 2pt for base, +1pt for each upgrade (max 6pt)|Sleep - gives 2pt only after full upgrade (Awaken), otherwise 0pt")
+	
 	GUICtrlCreateTabItem("Page 1")
 	_GUI_GroupFirst()
 	_GUI_NewText(00, "Base stats")
-	_GUI_NewItem(01, "{000} Strength")
-	_GUI_NewItem(02, "{002} Dexterity")
-	_GUI_NewItem(03, "{003} Vitality")
-	_GUI_NewItem(04, "{001} Energy")
+	_GUI_NewItem(01, "Str: {000}", "Strength")
+	_GUI_NewItem(02, "Dex: {002}", "Dexterity")
+	_GUI_NewItem(03, "Vit: {003}", "Vitality")
+	_GUI_NewItem(04, "Ene: {001}", "Energy")
 
-	_GUI_NewItem(06, "{080}% M.Find", "Magic Find")
-	_GUI_NewItem(07, "{079}% G.Find", "Gold Find")
-	_GUI_NewItem(08, "{085}% Exp.Gain", "Experience gained")
-	_GUI_NewItem(09, "{479} M.Skill", "Maximum Skill Level")
-	_GUI_NewItem(10, "{185} Sig.Stat [185:400/400]", "Signets of Learning. Up to 400 can be used||Any sacred unique item x1-25 + Catalyst of Learning ? Signet of Learning x1-25 + Catalyst of Learning|Any set item x1-25 + Catalyst of Learning ? Signet of Learning x1-25 + Catalyst of Learning|Unique ring/amulet/jewel/quiver + Catalyst of Learning ? Signet of Learning + Catalyst of Learning")
-	_GUI_NewItem(11, "Veteran tokens [219:1/1]", "On Nightmare and Hell difficulty, you can find veteran monsters near the end of|each Act. There are five types of veteran monsters, one for each Act||[Class Charm] + each of the 5 tokens ? returns [Class Charm] with added bonuses| +1 to [Your class] Skill Levels| +20% to Experience Gained")
+	_GUI_NewItem(07, "M.Find: {080}%")
+	_GUI_NewItem(08, "G.Find: {079}%")
+	_GUI_NewItem(09, "Exp.Gain: +{085}%")
+	_GUI_NewItem(10, "M.Skill: +{479}", "Maximum Skill Level")
 
 	_GUI_GroupNext()
 	_GUI_NewText(00, "Bonus stats")
@@ -1860,27 +1879,26 @@ func CreateGUI()
 	_GUI_NewItem(04, "{361}%/{903}", "Energy")
 
 	_GUI_NewText(06, "Item/Skill", "Speed from items and skills behave differently. Use SpeedCalc to find your breakpoints")
-	_GUI_NewItem(07, "{093}%/{068}% IAS", "Increased Attack Speed")
-	_GUI_NewItem(08, "{099}%/{069}% FHR", "Faster Hit Recovery")
-	_GUI_NewItem(09, "{102}%/{069}% FBR", "Faster Block Rate")
-	_GUI_NewItem(10, "{096}%/{067}% FRW", "Faster Run/Walk")
-	_GUI_NewItem(11, "{105}%/0% FCR", "Faster Cast Rate")
+	_GUI_NewItem(07, "IAS: {093}%/{068}%", "Increased Attack Speed")
+	_GUI_NewItem(08, "FHR: {099}%/{069}%", "Faster Hit Recovery")
+	_GUI_NewItem(09, "FBR: {102}%/{069}%", "Faster Block Rate")
+	_GUI_NewItem(10, "FRW: {096}%/{067}%", "Faster Run/Walk")
+	_GUI_NewItem(11, "FCR: {105}%/0%", "Faster Cast Rate")
 
 	_GUI_GroupNext()
-	_GUI_NewItem(00, "{076}% Life", "Maximum Life")
-	_GUI_NewItem(01, "{077}% Mana", "Maximum Mana")
-	_GUI_NewItem(02, "{025}% EWD", "Enchanced Weapon Damage")
-	_GUI_NewItem(03, "{171}% TCD", "Total Character Defense")
-	_GUI_NewItem(04, "{119}% AR", "Attack Rating")
-	_GUI_NewItem(05, "{034} PDR", "Physical Damage Reduction")
-	_GUI_NewItem(06, "{035} MDR", "Magic Damage Reduction")
-	_GUI_NewItem(07, "{338}% Dodge", "Chance to avoid melee attacks while standing still")
-	_GUI_NewItem(08, "{339}% Avoid", "Chance to avoid projectiles while standing still")
-	_GUI_NewItem(09, "{340}% Evade", "Chance to avoid any attack while moving")
+	_GUI_NewItem(00, "Life: {076}%", "Maximum Life")
+	_GUI_NewItem(01, "Mana: {077}%", "Maximum Mana")
+	_GUI_NewItem(02, "EWD: {025}%", "Enchanced Weapon Damage")
+	_GUI_NewItem(03, "TCD: {171}% ", "Total Character Defense")
+	_GUI_NewItem(04, "AR: {119}% ", "Attack Rating")
+	_GUI_NewItem(05, "PDR: {034}", "Physical Damage Reduction")
+	_GUI_NewItem(06, "MDR: {035}", "Magic Damage Reduction")
+	_GUI_NewItem(07, "Dodge: {338}%", "Chance to avoid melee attacks while standing still")
+	_GUI_NewItem(08, "Avoid: {339}%", "Chance to avoid projectiles while standing still")
+	_GUI_NewItem(09, "Evade: {340}%", "Chance to avoid any attack while moving")
 
-	_GUI_NewItem(11, "{136}% CB", "Crushing Blow. Chance to deal physical damage based on target's current health")
-	_GUI_NewItem(12, "{141}% DS", "Deadly Strike. Chance to double physical damage of attack")
-	_GUI_NewItem(13, "{164}% UA", "Uninterruptable Attack")
+	_GUI_NewItem(11, "CB: {136}%", "Crushing Blow. Chance to deal physical damage based on target's current health")
+	_GUI_NewItem(12, "DS: {141}%", "Deadly Strike. Chance to double physical damage of attack")
 
 	_GUI_GroupNext()
 	_GUI_NewText(00, "Resistance")
@@ -1901,31 +1919,33 @@ func CreateGUI()
 
 	GUICtrlCreateTabItem("Page 2")
 	_GUI_GroupFirst()
-	_GUI_NewItem(00, "{278} SF", "Strength Factor")
-	_GUI_NewItem(01, "{485} EF", "Energy Factor")
-	_GUI_NewItem(02, "{904}% F.Cap", "Factor cap. 100% means you don't benefit from more str/ene factor")
-	_GUI_NewItem(03, "{409}% Buff.Dur", "Buff/Debuff/Cold Skill Duration")
-	_GUI_NewItem(04, "{27}% Mana.Reg", "Mana Regeneration")
-	_GUI_NewItem(05, "{109}% CLR", "Curse Length Reduction")
-	_GUI_NewItem(06, "{110}% PLR", "Poison Length Reduction")
-	_GUI_NewItem(07, "{489} TTAD", "Target Takes Additional Damage")
-
-	_GUI_NewText(09, "Slow")
-	_GUI_NewItem(10, "{150}%/{376}% Tgt.", "Slows Target / Slows Melee Target")
-	_GUI_NewItem(11, "{363}%/{493}% Att.", "Slows Attacker / Slows Ranged Attacker")
+	_GUI_NewItem(00, "SF: {485}", "Spell Focus")
+	_GUI_NewItem(01, "SF.Cap: {904}%", "Spell Focus cap. 100% means you don't benefit from more spell focus")
+	_GUI_NewItem(02, "Buff.Dur: {409}%", "Buff/Debuff/Cold Skill Duration")
+	_GUI_NewItem(03, "Life Reg: {074}", "Life Regenerated per Second")
+	_GUI_NewItem(04, "Mana Reg: {027}%", "% Mana Regeneration per Second")
+	_GUI_NewItem(05, "CLR: {109}%", "Curse Length Reduction")
+	_GUI_NewItem(06, "PLR: {110}%", "Poison Length Reduction")
+	_GUI_NewItem(07, "TTAD: {489}", "Target Takes Additional Damage")
+	_GUI_NewItem(08, "DtD: {121}%", "Damage to Demons")
+	_GUI_NewItem(09, "DtU: {122}%", "Damage to Undead")
+	
+	_GUI_NewText(11, "Slow")
+	_GUI_NewItem(12, "Tgt.: {150}%/{376}%", "Slows Target / Slows Melee Target")
+	_GUI_NewItem(13, "Att.: {363}%/{493}%", "Slows Attacker / Slows Ranged Attacker")
 
 	_GUI_GroupNext()
 	_GUI_NewText(00, "Minions")
-	_GUI_NewItem(01, "{444}% Life")
-	_GUI_NewItem(02, "{470}% Damage")
-	_GUI_NewItem(03, "{487}% Resist")
-	_GUI_NewItem(04, "{500}% AR", "Attack Rating")
+	_GUI_NewItem(01, "Life: {444}%")
+	_GUI_NewItem(02, "Damage: {470}%")
+	_GUI_NewItem(03, "Resist: {487}%")
+	_GUI_NewItem(04, "AR: {500}%", "Attack Rating")
 
 	_GUI_NewText(06, "Life/Mana")
-	_GUI_NewItem(07, "{060}%/{062}% Leech", "Life/Mana Stolen per Hit")
-	_GUI_NewItem(08, "{086}/{138} *aeK", "Life/Mana after each Kill")
-	_GUI_NewItem(09, "{208}/{209} *oS", "Life/Mana on Striking")
-	_GUI_NewItem(10, "{210}/{295} *oA", "Life/Mana on Attack")
+	_GUI_NewItem(07, "Leech: {060}%/{062}%", "Life/Mana Stolen per Hit")
+	_GUI_NewItem(08, "*aeK: {086}/{138}", "Life/Mana after each Kill")
+	_GUI_NewItem(09, "*oS: {208}/{209}", "Life/Mana on Striking")
+	_GUI_NewItem(10, "*oA: {210}/{295}", "Life/Mana on Attack")
 
 	_GUI_GroupNext()
 	_GUI_NewText(00, "Weapon Damage")
@@ -1945,6 +1965,8 @@ func CreateGUI()
 	_GUI_NewItem(04, "{146}%/{147}", "Magic", $g_iColorPink)
 
 	_GUI_NewItem(06, "RIP [108:1/1]", "Slain Monsters Rest In Peace")
+	_GUI_NewItem(07, "Half freeze [118:1/1]", "Half freeze duration")
+	_GUI_NewItem(08, "Cannot be Frozen [153:1/1]")
 #EndRegion
 
 	LoadGUISettings()
@@ -2019,7 +2041,7 @@ func CreateGUI()
 	_GUI_NewTextBasic(03, "Sounds by MurderManTX and Cromi38.", False)
 
 	_GUI_NewTextBasic(05, "If you're unsure what any of the abbreviations mean, all of", False)
-	_GUI_NewTextBasic(06, " them should have a tooltip when hovered over.", False)
+	_GUI_NewTextBasic(06, "them should have a tooltip when hovered over.", False)
 
 	_GUI_NewTextBasic(08, "Hotkeys can be disabled by setting them to ESC.", False)
 
@@ -2527,7 +2549,7 @@ func DefineGlobals()
 
 	global enum $eNotifyFlagsTier, $eNotifyFlagsQuality, $eNotifyFlagsMisc, $eNotifyFlagsNoMask, $eNotifyFlagsColour, $eNotifyFlagsSound, $eNotifyFlagsName, $eNotifyFlagsStat, $eNotifyFlagsMatchStats, $eNotifyFlagsMatch, $eNotifyFlagsLast
 		global $g_asNotifyFlags[$eNotifyFlagsLast][32] = [ _
-		[ "0", "1", "2", "3", "4", "sacred" ], _
+		[ "0", "1", "2", "3", "4", "sacred", "angelic" ], _
 		[ "low", "normal", "superior", "magic", "set", "rare", "unique", "craft", "honor" ], _
 		[ "eth", "socket" ], _
 		[], _
@@ -2555,6 +2577,7 @@ func DefineGlobals()
 
 	global const $g_iNumStats = 1024
 	global $g_aiStatsCache[2][$g_iNumStats]
+	global $g_aiStatsCacheCopy[2][$g_iNumStats]
 
 	global $g_asDLL[] = ["D2Client.dll", "D2Common.dll", "D2Win.dll", "D2Lang.dll", "D2Sigma.dll"]
 	global $g_hD2Client, $g_hD2Common, $g_hD2Win, $g_hD2Lang, $g_hD2Sigma
