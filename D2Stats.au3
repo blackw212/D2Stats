@@ -21,10 +21,7 @@
 #include <WindowsConstants.au3>
 
 #include "defaultNotifyText.au3"
-
-;Begin Azadi
 #include "d2StatDescriptions.au3"
-;End Azadi
 
 #pragma compile(Icon, Assets/icon.ico)
 #pragma compile(FileDescription, Diablo II Stats reader)
