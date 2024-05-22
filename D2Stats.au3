@@ -1896,7 +1896,7 @@ func CreateGUI()
 
 	_GUI_NewItem(11, "CB: {136}%", "Crushing Blow. Chance to deal physical damage based on target's current health")
 	_GUI_NewItem(12, "DS: {141}%", "Deadly Strike. Chance to double physical damage of attack")
-	_GUI_NewItem(13, "Crit: {337}%", "Critical Strike. Chance to double physical damage of attack")
+	_GUI_NewItem(13, "Crit: {344}%", "Critical Strike. Chance to double physical damage of attack")
 
 	_GUI_GroupNext()
 	_GUI_NewText(00, "Resistance")
