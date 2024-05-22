@@ -1896,6 +1896,7 @@ func CreateGUI()
 
 	_GUI_NewItem(11, "CB: {136}%", "Crushing Blow. Chance to deal physical damage based on target's current health")
 	_GUI_NewItem(12, "DS: {141}%", "Deadly Strike. Chance to double physical damage of attack")
+	_GUI_NewItem(13, "Crit: {337}%", "Critical Strike. Chance to double physical damage of attack")
 
 	_GUI_GroupNext()
 	_GUI_NewText(00, "Resistance")
@@ -1982,9 +1983,9 @@ func CreateGUI()
 		_GUI_NewOption($i-1, $g_avGUIOptionList[$iOption][0], $g_avGUIOptionList[$iOption][3], $g_avGUIOptionList[$iOption][4])
 		$iOption += 1
 	next
-
+	
 	GUICtrlCreateTabItem("Notifier")
-
+	
 	local $iButtonWidth = 60
 	local $iControlMargin = 4
 	local $iComboWidth = $g_iGUIWidth - 3 * $iButtonWidth - 3 * $iControlMargin - 8

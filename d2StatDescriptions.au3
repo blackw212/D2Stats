@@ -336,7 +336,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "-#% To Enemy Lightning Resistance"], _
 		["", "-#% To Enemy Cold Resistance"], _
 		["", "-#% To Enemy Poison Resistance"], _
-		["", ""], _
+		["", "#% Critical Strike"], _
 		["", "Dodge +#% (Chance to avoid melee while standing)"], _
 		["", "Avoid +#% (Chance to avoid projectile while standing)"], _
 		["", "Evade +#% (Chance to avoid any attack while moving)"], _
