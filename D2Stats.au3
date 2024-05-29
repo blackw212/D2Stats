@@ -250,7 +250,7 @@ func HotKey_CopyItem($TEST = False)
 
 	while ($sOutput == "" and TimerDiff($hTimerRetry) < 10)
 		$sOutput = _MemoryPointerRead($g_hD2Win + 0x1191F, $g_ahD2Handle, $aiOffsets, "wchar[8192]")
-		; $sOutput = _MemoryRead(0x00191FA4, $g_ahD2Handle, "wchar[2048]") ; Magic?
+		;$sOutput = _MemoryRead(0x00191FA4, $g_ahD2Handle, "wchar[2048]") ; Magic?
 	wend
 
 	if (StringLen($sOutput) == 0) then
@@ -478,6 +478,7 @@ func CalculateWeaponDamage()
 
 	local $iStrBonus = _MemoryRead($pBaseAddr + 0x106, $g_ahD2Handle, "word")
 	local $iDexBonus = _MemoryRead($pBaseAddr + 0x108, $g_ahD2Handle, "word")
+
 	local $bIs2H = _MemoryRead($pBaseAddr + 0x11C, $g_ahD2Handle, "byte")
 	local $bIs1H = $bIs2H ? _MemoryRead($pBaseAddr + 0x13D, $g_ahD2Handle, "byte") : 1
 
@@ -668,14 +669,25 @@ func NotifierCache()
 		$sTier = "0"
 
 		if (_MemoryRead($pBaseAddr + 0x84, $g_ahD2Handle)) then ; Weapon / Armor
-			$asMatch = StringRegExp($sName, "[1-4]|\Q(Sacred)\E|\Q(Angelic)\E", $STR_REGEXPARRAYGLOBALMATCH)
-			if (not @error) then $sTier = $asMatch[0] == "(Sacred)" ? "sacred" : $asMatch[0] == "(Angelic)" ? "angelic" : $asMatch[0]
+			$asMatch = StringRegExp($sName, "[1-4]|\Q(Sacred)\E|\Q(Angelic)\E|\Q(Masterworked)\E", $STR_REGEXPARRAYGLOBALMATCH)
+			if (not @error) then
+				Select
+					Case $asMatch[0] == "(Sacred)"
+						$sTier = "sacred"
+					Case $asMatch[0] == "(Angelic)"
+						$sTier = "angelic"
+					Case $asMatch[0] == "(Masterworked)"
+						$sTier = "master"
+					Case Else
+						$sTier = $asMatch[0]
+				EndSelect
+			Endif
 		endif
 
 		$g_avNotifyCache[$iClass][0] = $sName
 		$g_avNotifyCache[$iClass][1] = NotifierFlag($sTier)
 		$g_avNotifyCache[$iClass][2] = StringRegExpReplace($sName, ".+\|", "")
-
+		
 		if (@error) then
 			_Debug("NotifierCache", StringFormat("Invalid tier flag '%s'", $sTier))
 			exit
@@ -704,7 +716,7 @@ endfunc
 
 func NotifierCompileFlag($sFlag, ByRef $avRet, $sLine)
 	if ($sFlag == "") then return False
-
+	
 	local $iFlag, $iGroup
 	if (not NotifierFlagRef($sFlag, $iFlag, $iGroup)) then
 		MsgBox($MB_ICONWARNING, "D2Stats", StringFormat("Unknown notifier flag '%s' in line:%s%s", $sFlag, @CRLF, $sLine))
@@ -967,7 +979,6 @@ func NotifierMain()
                         _ArrayAdd($aOnGroundDisplayPool, $aOnGroundItem)
 					endif
 				next
-
 				ProcessItems($aOnGroundDisplayPool)
 			endif
 		wend
@@ -982,16 +993,16 @@ func ProcessItems(byref $aOnGroundDisplayPool)
 	local $bDelayedHideItem = False
 
 	local $asPreNotificationsPool = OnGroundFilterItems($aOnGroundDisplayPool, $bDelayedHideItem)
-
+	
 	; $asNotificationsPool represents an array of notifications per item base
 	$asNotificationsPool = FormatNotifications($asPreNotificationsPool, $bDelayedHideItem)
-
+	
 	; Display notifications from pool
 	DisplayNotification($asNotificationsPool)
 endfunc
 
 func DisplayItemOnGround($pUnitData, $iShow)
-	_MemoryWrite($pUnitData + 0x48, $g_ahD2Handle, $iShow ? 1 : 2, "byte")
+	_MemoryWrite($pUnitData + 0x48, $g_ahD2Handle, $iShow ? 1 : 2, "byte")		
 endfunc
 
 func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
@@ -1004,13 +1015,13 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 	local $bHideCompletely = False
 	local $bDisplayNotification = False
 	local $bWithStatGroups = False
-
+	
 	for $i = 0 to UBound($aOnGroundDisplayPool) - 1
 		local $asType = $aOnGroundDisplayPool[$i][0]
 		local $oFlags = $aOnGroundDisplayPool[$i][1]
 		local $aNotification[1][4] = [[$asType, $oFlags]]
 		local $bStatGroupsExists = UBound($oFlags.item('$asStatGroups')) > 0
-
+		
 		$pUnitData = $oFlags.item('$pUnitData')
 
 		if ($bStatGroupsExists) then
@@ -1042,7 +1053,7 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 
         case $bHideCompletely
 			; if rule with "hide" flag is present and we have item stats matching group "in {} brackets"
-			; then we need to delay hiding the item until the stats check is completed (look in FormatNotifications)
+			; then we need to delay hiding the item until the stats check is completed (look in FormatNotifications)			
 			if ($bWithStatGroups) then
 				$bDelayedHideItem = True
 		        return $asPreNotificationsPool
@@ -1057,12 +1068,12 @@ endfunc
 
 func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
 	if (UBound($asPreNotificationsPool) == 0) then return
-
+	
 	local $asNotificationsPool[0][4]
-
+	
 	for $i = 0 to UBound($asPreNotificationsPool) - 1
 		local $oFlags = $asPreNotificationsPool[$i][1]
-
+		
 		local $pCurrentUnit = $oFlags.item('$pCurrentUnit')
 		local $asStatGroups = $oFlags.item('$asStatGroups')
 		local $bDisplayItemStats = $oFlags.item('$bDisplayItemStats')
@@ -1083,7 +1094,7 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
         local $asItemStats = ""
         local $iItemColor = $bNotEquipment ? $ePrintOrange : $g_iQualityColor[$iQuality]
         local $sPreName = ""
-
+		
         ; collect a reversed 2d array of stats and color
         ; to display as notifications per line
         if (UBound($asStatGroups) or $bDisplayItemStats) then
@@ -1094,9 +1105,9 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
 
         ; Don't display notification if no match by stats from rule
         if (UBound($asStatGroups) and not $bIsMatchByStats) then
-            if($bDelayedHideItem) then
+            if ($bDelayedHideItem) then
                 ; if "hide" flag exist -> hide item from ground -> clean pool -> stop processing item
-                DisplayItemOnGround($pUnitData, false)
+                DisplayItemOnGround($pUnitData, False)
                 redim $asPreNotificationsPool[0][4]
                 exitloop
             endif
@@ -1160,10 +1171,8 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
         endif
 
         local $aNotification[1][4] = [[$asItemName, $asItemType, $asItemStats, $oFlags]]
-
         _ArrayAdd($asNotificationsPool, $aNotification)
 	next
-
 	return $asNotificationsPool
 endfunc
 
@@ -1275,13 +1284,13 @@ func HighlightStats($sGetItemStats, $asStatGroups, byref $bIsMatchByStats)
 
     for $k = 1 to $asStats[0]
         local $sStat = $asStats[$k]
-
+		
 		$aColoredStats[$asStats[0] - $k][0] = $sStat
         $aColoredStats[$asStats[0] - $k][1] = $ePrintBlue
-
+		
         $aPlainStats[$asStats[0] - $k][0] = $sStat
         $aPlainStats[$asStats[0] - $k][1] = $ePrintBlue
-
+		
         for $i = 0 to UBound($asStatGroups) - 1
             if ($asStatGroups[$i] == "" or $aColoredStats[$asStats[0] - $k][1] == $ePrintRed) then
                 continueloop
@@ -1623,7 +1632,7 @@ func OnClick_NotifyHelp()
 		'If you''re unsure what regex is, use letters only.', _
 		'', _
 		'Flags:', _
-		'> 0-4 sacred angelic - Item must be one of these tiers.', _
+		'> 0-4 sacred angelic master - Item must be one of these tiers.', _
 		'   Tier 0 means untiered items (runes, amulets, etc).', _
 		'> normal superior rare set unique - Item must be one of these qualities.', _
 		'> name - To print type name and real name.', _
@@ -2547,7 +2556,7 @@ func DefineGlobals()
 
 	global enum $eNotifyFlagsTier, $eNotifyFlagsQuality, $eNotifyFlagsMisc, $eNotifyFlagsNoMask, $eNotifyFlagsColour, $eNotifyFlagsSound, $eNotifyFlagsName, $eNotifyFlagsStat, $eNotifyFlagsMatchStats, $eNotifyFlagsMatch, $eNotifyFlagsLast
 		global $g_asNotifyFlags[$eNotifyFlagsLast][32] = [ _
-		[ "0", "1", "2", "3", "4", "sacred", "angelic" ], _
+		[ "0", "1", "2", "3", "4", "sacred", "angelic", "master" ], _
 		[ "low", "normal", "superior", "magic", "set", "rare", "unique", "craft", "honor" ], _
 		[ "eth", "socket" ], _
 		[], _
