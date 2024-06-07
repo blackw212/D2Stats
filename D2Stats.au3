@@ -896,7 +896,7 @@ func NotifierMain()
 					GoblinAlert($iUnitId)
 				endif
 			endif
-
+			
 			; iUnitType 4 = item
 			if ($iUnitType == 4) then
 				_WinAPI_ReadProcessMemory($g_ahD2Handle[1], $pUnitData, DllStructGetPtr($tItemData), DllStructGetSize($tItemData), 0)
@@ -904,13 +904,13 @@ func NotifierMain()
 				$iFlags = DllStructGetData($tItemData, "iFlags")
 				$iEarLevel = DllStructGetData($tItemData, "iEarLevel")
 				$iFileIndex = DllStructGetData($tItemData, "dwFileIndex")
-
+				
 				; Using the ear level field to check if we've seen this item on the ground before
 				; Resets when the item is picked up or we move too far away (search for OnGroundFilterItems func)
 				if (not $g_bNotifierChanged and $iEarLevel <> 0) then continueloop
 				; We are showing items on ground by default
 				DisplayItemOnGround($pUnitData, true)
-
+				
 				$bIsNewItem = BitAND(0x2000, $iFlags) <> 0
 				$bIsSocketed = BitAND(0x800, $iFlags) <> 0
 				$bIsEthereal = BitAND(0x400000, $iFlags) <> 0
@@ -1044,7 +1044,7 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 
 	select
         case $bDisplayNotification
-			; return pool of notifications if at least one rule without "show" or "hide" flags present
+			; Return pool of notifications if at least one rule without "show" or "hide" flags present
 		    return $asPreNotificationsPool
 
         case $bShowOnGround
@@ -1102,7 +1102,7 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
             $asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
             $oFlags.add('$bIsMatchByStats', $bIsMatchByStats)
         endif
-
+		
         ; Don't display notification if no match by stats from rule
         if (UBound($asStatGroups) and not $bIsMatchByStats) then
             if ($bDelayedHideItem) then
@@ -1143,7 +1143,6 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
         endif
 
 		; compiling texts for item notifications
-
 		if ($bNotEquipment) then
 			local $sCombinedName = $asItemName == "" ? $asItemType : $asItemName
             local $asNewName = ["- " & $sPreName & $sCombinedName, $iItemColor]
@@ -1169,7 +1168,6 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
 	            $asItemType = $asNewType
             endif
         endif
-
         local $aNotification[1][4] = [[$asItemName, $asItemType, $asItemStats, $oFlags]]
         _ArrayAdd($asNotificationsPool, $aNotification)
 	next
@@ -1205,9 +1203,15 @@ func DisplayNotification(byref $asNotificationsPool)
 	; Display item stats
 	if (UBound($asStats)) then
 		for $n = 0 to UBound($asStats) - 1
-            if ($asStats[$n][0] <> "") then
-                PrintString("  " & $asStats[$n][0], $asStats[$n][1])
-            endif
+			if ($asStats[$n][0] <> "") then
+				if (_GUI_Option("notify-only-filtered")) then
+					if ($asStats[$n][1] == $ePrintRed) then
+						PrintString("  " & $asStats[$n][0], $asStats[$n][1])
+					endif
+				else
+					PrintString("  " & $asStats[$n][0], $asStats[$n][1])
+				endif
+			endif
 
 			if($n == UBound($asStats) - 1 and $iQuality > 0 and $iQuality < 5) then
 				local $iSockets = GetUnitStat($pCurrentUnit, 0xC2)
@@ -1302,7 +1306,7 @@ func HighlightStats($sGetItemStats, $asStatGroups, byref $bIsMatchByStats)
             endif
         next
     next
-
+	
 	if ($iMatchCounter >= UBound($asStatGroups)) then
 		$bIsMatchByStats = True
 		return $aColoredStats
@@ -1533,9 +1537,9 @@ func OnChange_NotifyRulesCombo()
 			SaveCurrentNotifierRulesToFile(_GUI_Option("selectedNotifierRulesName"))
 		endif
 	endif
-
+	
 	local $sSelectedNofitierRules = GUICtrlRead($g_idNotifyRulesCombo)
-
+	
 	local $sNotifierRulesFilePath = ""
 	for $i = 1 to $g_aNotifierRulesFilePaths[0] step +1
 		if (GetNotifierRulesName($g_aNotifierRulesFilePaths[$i]) == $sSelectedNofitierRules) then
@@ -1543,8 +1547,8 @@ func OnChange_NotifyRulesCombo()
 			exitloop
 		endif
 	next
-
-	; first case should never happen, but we'll check anyway
+	
+	;First case should never happen, but we'll check anyway
 	if ($sNotifierRulesFilePath == "" or not FileExists($sNotifierRulesFilePath)) then
 		MsgBox($MB_ICONERROR, "File Not Found", "The file for the notifier rules named " & $sNotifierRulesFilePath & " could not be found.")
 		return
@@ -1843,26 +1847,24 @@ func CreateGUI()
 	GUISetAccelerators($avAccelKeys)
 
 #Region Stats
-	;---TODO
-	;Create 3 tabs: Basic, Offense, Defense
-	;Group stats by category
-	;Rename stats to match in-game values
-	
 	GUICtrlCreateTabItem("Basic")
 	_GUI_GroupFirst()
 	_GUI_NewText(00, "Character data")
 	_GUI_NewItem(01, "Level: {012}")
 	_GUI_NewItem(02, "Experience: {013}")
 	
-	_GUI_NewItem(04, "Life: {006}")
-	_GUI_NewItem(05, "Mana: {008}")
-	_GUI_NewItem(06, "Stamina: {010}")
+	_GUI_NewItem(04, "Gold: {014}", "Current gold on character.||Max gold on character calculated from the following formula:|(CharacterLevel*10,000)")
+	_GUI_NewItem(05, "Stash: {015} [015:2500000/1000000]", "Current gold in stash||Max gold in stash is constant:|2,500,000")
 
-	_GUI_NewItem(08, "Gold: {014}", "Max gold on character calculated from the following formula:|(CharacterLevel*10,000)")
-	_GUI_NewItem(09, "Stash: {015} [015:2500000/1000000]", "Max gold in stash is constant:|2,500,000")
-
-	_GUI_NewItem(10, "Signets: {185}/400 [185:400/400]", "Signets of Learning.|Each grants 1 stat point. Catalyst is not used up in craft. Can't mix sets and uniques while disenchanting.||Cube recipes:|Any sacred unique item x1-10 + Catalyst of Learning ? Signet of Learning x1-10|Any set item x1-10 + Catalyst of Learning ? Signet of Learning x1-10|Unique ring/amulet/jewel/quiver + Catalyst of Learning ? Signet of Learning")
-	_GUI_NewItem(11, "Charms: {356}/97 [356:97/97]","Charm counter|Value calculated by the following formula: (Charms+Relics)*2||Exceptions:|Ennead charm - 1pt|Sunstone of the Sunless Sea - 1pt, +1pt for all 3 scrolls|Riftwalker - 2pt for base, +1pt for each upgrade (max 6pt)|Sleep - gives 2pt only after full upgrade (Awaken), otherwise 0pt")
+	_GUI_NewItem(07, "Signets: {185}/400 [185:400/400]", "Signets of Learning.|Each grants 1 stat point. Catalyst is not used up in craft. Can't mix sets and uniques while disenchanting.||Cube recipes:|Any sacred unique item x1-10 + Catalyst of Learning ? Signet of Learning x1-10|Any set item x1-10 + Catalyst of Learning ? Signet of Learning x1-10|Unique ring/amulet/jewel/quiver + Catalyst of Learning ? Signet of Learning")
+	_GUI_NewItem(08, "Charms: {356}/97 [356:97/97]","Charm counter|Value calculated by the following formula: (Charms+Relics)*2||Exceptions:|Ennead charm - 1pt|Sunstone of the Sunless Sea - 1pt, +1pt for all 3 scrolls|Riftwalker - 2pt for base, +1pt for each upgrade (max 6pt)|Sleep - gives 2pt only after full upgrade (Awaken), otherwise 0pt")
+	
+	_GUI_GroupNext()
+	_GUI_GroupNext()
+	_GUI_NewItem(00, "M.Find: {080}%", "Magic Find")
+	_GUI_NewItem(01, "G.Find: {079}%", "Gold Find")
+	_GUI_NewItem(02, "Exp.Gain: +{085}%")
+	_GUI_NewItem(03, "M.Skill: +{479}", "Maximum Skill Level")
 	
 	GUICtrlCreateTabItem("Page 1")
 	_GUI_GroupFirst()
@@ -1871,11 +1873,6 @@ func CreateGUI()
 	_GUI_NewItem(02, "Dex: {002}", "Dexterity")
 	_GUI_NewItem(03, "Vit: {003}", "Vitality")
 	_GUI_NewItem(04, "Ene: {001}", "Energy")
-
-	_GUI_NewItem(07, "M.Find: {080}%")
-	_GUI_NewItem(08, "G.Find: {079}%")
-	_GUI_NewItem(09, "Exp.Gain: +{085}%")
-	_GUI_NewItem(10, "M.Skill: +{479}", "Maximum Skill Level")
 
 	_GUI_GroupNext()
 	_GUI_NewText(00, "Bonus stats")
@@ -1971,7 +1968,7 @@ func CreateGUI()
 	_GUI_NewItem(03, "{144}%/{145}", "Lightning", $g_iColorGold)
 	_GUI_NewItem(04, "{146}%/{147}", "Magic", $g_iColorPink)
 
-	_GUI_NewItem(06, "RIP [108:1/1]", "Slain Monsters Rest In Peace")
+	_GUI_NewItem(06, "RIP [108:1/1]", "Slain Monsters Rest In Peace|Nullifies Reanimates from monsters and you")
 	_GUI_NewItem(07, "Half freeze [118:1/1]", "Half freeze duration")
 	_GUI_NewItem(08, "Cannot be Frozen [153:1/1]")
 #EndRegion
@@ -2599,7 +2596,7 @@ func DefineGlobals()
 	global $g_hTimerCopyName = 0
 	global $g_sCopyName = ""
 
-	global const $g_iGUIOptionsGeneral = 9
+	global const $g_iGUIOptionsGeneral = 10
 	global const $g_iGUIOptionsHotkey = 5
 
 	global $g_avGUIOptionList[][5] = [ _
@@ -2607,6 +2604,7 @@ func DefineGlobals()
 		["mousefix", 0, "cb", "Continue attacking when monster dies under cursor"], _
 		["notify-enabled", 1, "cb", "Enable notifier"], _
 		["notify-superior", 0, "cb", "Notifier prefixes superior items with 'Superior'"], _
+		["notify-only-filtered", 0, "cb", "Only show filtered stats"], _
 		["goblin-alert", 1, "cb", "Play sound (sound 6) when goblins are nearby."], _
 		["unique-tier", 1, "cb", "Show sacred tier of unique (SU/SSU/SSSU)"], _
 		["oneline-name", 0, "cb", "One line item name and stats notification style"], _
