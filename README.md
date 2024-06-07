@@ -2,8 +2,7 @@
 
 Reads Diablo II stats from the game.
 
-[Forum post with a description of the latest version.]((https://forum.median-xl.com/viewtopic.php?p=599923#p599923))
-
+[Forum post with a description of the latest version.](https://forum.median-xl.com/viewtopic.php?p=599923#p599923)
 
 ![D2Stats window screenshot](Assets/screenshot1.png "D2Stats window screenshot")
 
