@@ -183,10 +183,10 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Melee devotion flag (probably 20% DR)"], _
-		["", "Signets of Learning used (out of 400)"], _
+		["", "Melee devotion flag (20% DR)"], _
+		["Signets of Learning used", "Signets of Learning used"], _
 		["", ""], _
-		["", ""], _
+		["", "Barbarian Stance (0-None, 1-Lion, 2-Bear, 3-Snake, 4-Eagle, 5-Wolf)"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -210,9 +210,9 @@ global $g_d2StatNames[][2] = [ _
 		["", "Life on striking +#"], _
 		["", "Mana on striking +#"], _
 		["", "Life on attack +#"], _
-		["", "Melee devotion flag (probably disable non-melee)"], _
+		["", "Melee devotion flag (disable non-melee skills)"], _
 		["", ""], _
-		["", ""], _
+		["", "#% Max block chance modifier"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -327,7 +327,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["Is player morphed", "Is player morphed"], _
+		["", "# Active buffs"], _
 		["", "#% To Fire Skill Damage"], _
 		["", "#% To Lightning Skill Damage"], _
 		["", "#% To Cold Skill Damage"], _
@@ -336,7 +336,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "-#% To Enemy Lightning Resistance"], _
 		["", "-#% To Enemy Cold Resistance"], _
 		["", "-#% To Enemy Poison Resistance"], _
-		["", ""], _
+		["", "#% Critical Strike (for Barbarian)"], _
 		["", "Dodge +#% (Chance to avoid melee while standing)"], _
 		["", "Avoid +#% (Chance to avoid projectile while standing)"], _
 		["", "Evade +#% (Chance to avoid any attack while moving)"], _
@@ -349,7 +349,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "increases by 511 when adding points on tree????"], _
+		["", "Increases by 511 when adding points on tree???"], _
 		["", "Combined skill level from Reward and Mastery tree???"], _
 		["", ""], _
 		["", ""], _
@@ -382,7 +382,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Tenacity unlock (1/0)"], _
+		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -396,6 +396,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", "Continuity unlock (1/0)"], _
+		["", "Specialization unlock (1/0)"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -413,13 +414,12 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
+		["", "#% Innate Damage"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "After blocking effect active"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -447,7 +447,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "#% increased Healing from Potions"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
