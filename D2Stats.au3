@@ -1823,11 +1823,11 @@ func CreateGUI()
 
 	local $sTitle = not @Compiled ? "Test" : StringFormat("D2Stats %s - [%s]", FileGetVersion(@AutoItExe, "FileVersion"), FileGetVersion(@AutoItExe, "Comments"))
 
-	global $g_hGUI = GUICreate($sTitle, $g_iGUIWidth, $g_iGUIHeight, -1, -1, $WS_SIZEBOX)
+	global $g_hGUI = GUICreate($sTitle, $g_iGUIWidth, $g_iGUIHeight, -1, -1, -1)
 	GUISetFont(9 / _GetDPI()[2], 0, 0, "Courier New")
 	GUISetOnEvent($GUI_EVENT_CLOSE, "_Exit")
 
-	local $iBottomButtonCoords = $g_iGUIHeight - 60
+	local $iBottomButtonCoords = $g_iGUIHeight - 30
 
 	global $g_idReadStats = GUICtrlCreateButton("Read", $g_iGroupXStart, $iBottomButtonCoords, 70, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_ReadStats")
