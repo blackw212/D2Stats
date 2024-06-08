@@ -8,6 +8,7 @@
 #include <Misc.au3>
 #include <NomadMemory.au3>
 #include <WinAPI.au3>
+#include <WinAPIError.au3>
 
 #include <AutoItConstants.au3>
 #include <ComboConstants.au3>
@@ -70,6 +71,7 @@ Main()
 
 #Region Main
 func Main()
+	_WINAPI_SetLastError(0)
 	_HotKey_Disable($HK_FLAG_D2STATS)
 
 	local $hTimerUpdateDelay = TimerInit()
@@ -180,7 +182,7 @@ endfunc
 func _Log($sFuncName, $sMessage, $iError = @error, $iExtended = @extended)
 	$g_sLog &= StringFormat("[%s] %s (error: %s; extended: %s)%s", $sFuncName, $sMessage, $iError, $iExtended, @CRLF)
 
-	if ($g_iUpdateFailCounter >= 10) then
+	if ($g_iUpdateFailCounter >= 200) then
 		MsgBox($MB_ICONERROR, "D2Stats", "Failed too many times in a row. Check log for details. Closing D2Stats...", 0, $g_hGUI)
 		exit
 	endif
@@ -2049,7 +2051,7 @@ func CreateGUI()
 
 	_GUI_NewTextBasic(08, "Hotkeys can be disabled by setting them to ESC.", False)
 
-	GUICtrlCreateButton("Forum", 4 + 0*62, $iBottomButtonCoords, 60, 25)
+	GUICtrlCreateButton("Forum", $g_iGroupXStart, $iBottomButtonCoords, 70, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_Forum")
 
 	GUICtrlCreateTabItem("")
@@ -2492,8 +2494,15 @@ func UpdateDllHandles()
 	local $pLoadLibraryA = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "LoadLibraryA")
 	if (not $pLoadLibraryA) then return _Debug("UpdateDllHandles", "Couldn't retrieve LoadLibraryA address.")
 
+	_Log("Pre Alloc Last Error",_WINAPI_GetLastError())
+
 	local $pAllocAddress = _MemVirtualAllocEx($g_ahD2Handle[1], 0, 0x100, BitOR($MEM_COMMIT, $MEM_RESERVE), $PAGE_EXECUTE_READWRITE)
 	if (@error) then return _Debug("UpdateDllHandles", "Failed to allocate memory.")
+
+	_Log("Post Alloc Last Error",_WINAPI_GetLastError())
+
+	Sleep(10000)
+	_WinAPI_WaitForSingleObject($pAllocAddress)
 
 	local $iDLLs = UBound($g_asDLL)
 	local $hDLLHandle[$iDLLs]
@@ -2602,11 +2611,11 @@ func DefineGlobals()
 	global $g_avGUIOptionList[][5] = [ _
 		["nopickup", 0, "cb", "Automatically enable /nopickup"], _
 		["mousefix", 0, "cb", "Continue attacking when monster dies under cursor"], _
+		["goblin-alert", 1, "cb", "Play sound (sound 6) when goblins are nearby."], _
+		["unique-tier", 1, "cb", "Show sacred tier of unique (SU/SSU/SSSU)"], _
 		["notify-enabled", 1, "cb", "Enable notifier"], _
 		["notify-superior", 0, "cb", "Notifier prefixes superior items with 'Superior'"], _
 		["notify-only-filtered", 0, "cb", "Only show filtered stats"], _
-		["goblin-alert", 1, "cb", "Play sound (sound 6) when goblins are nearby."], _
-		["unique-tier", 1, "cb", "Show sacred tier of unique (SU/SSU/SSSU)"], _
 		["oneline-name", 0, "cb", "One line item name and stats notification style"], _
 		["debug-notifier", 0, "cb", "Debug item notifications with match criteria and matching rule"], _
 		["use-wav", 0, "cb", "Use .wav instead of .mp3 for sounds (For Linux Compatibility)"], _
