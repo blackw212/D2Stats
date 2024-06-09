@@ -379,14 +379,14 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "+#% Bonus Damage to Bloodlust"], _
 		["", "+#% Bonus Elemental damage to Bloodlust"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "+#% Bonus Damage to Mark of the Wild"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -496,7 +496,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "Corrupted items count"], _
 		["", ""], _
 		["", ""], _
 		["", "Summoned minion attack rating +#%"], _
