@@ -91,12 +91,12 @@ global $g_d2StatNames[][2] = [ _
 		["", "+# to Light Radius"], _
 		["", ""], _
 		["", "Requirements #%"], _
-		["", "Level requirements +# (Invisible)"], _
+		["", "+# Required level"], _
 		["", "#% Increased Attack Speed"], _
 		["", ""], _
 		["", ""], _
 		["", "#% Faster Run/Walk"], _
-		["", "Number of levels to skills from items and charms"], _
+		["", "+# levels to skills from items and charms eg. +9 to Teleport"], _
 		["", ""], _
 		["", "#% Faster Hit Recovery"], _
 		["", ""], _
@@ -194,13 +194,13 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", "Equipped items socket amount"], _
-		["", "Chance to cast [SKILL] on melee attack"], _
+		["", "#% Chance to cast [SKILL] on melee attack"], _
+		["", "#% Chance to cast [SKILL] on kill"], _
+		["", "#% Chance to cast [SKILL] when you die"], _
+		["", "#% Chance to cast [SKILL] on striking"], _
 		["", ""], _
 		["", ""], _
-		["", "Chance to cast [SKILL] on striking"], _
-		["", ""], _
-		["", ""], _
-		["", "Chance to cast [SKILL] when struck"], _
+		["", "#% Chance to cast [SKILL] when struck"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -283,15 +283,15 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
+		["", "#% Chance to cast [SKILL] when struck by a missile"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "Orb effects applied to this item are doubled amount"], _
 		["", "Mystic orb used amount"], _
 		["", ""], _
-		["", ""], _
+		["", "#% Chance to cast [SKILL] on death blow"], _
 		["", ""], _
 		["", ""], _
 		["", "Mana on attack +#"], _
@@ -327,7 +327,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "# Active buffs"], _
+		["", "# Active buffs/# Buff activations ???"], _
 		["", "#% To Fire Skill Damage"], _
 		["", "#% To Lightning Skill Damage"], _
 		["", "#% To Cold Skill Damage"], _
@@ -379,14 +379,14 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
+		["", "+#% Bonus Damage to Bloodlust"], _
+		["", "+#% Bonus Elemental damage to Bloodlust"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "+#% Bonus Damage to Mark of the Wild"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -409,17 +409,17 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
+		["", "# Prefixes"], _
+		["", "# Suffixes"], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "+#% Bonus to summoned Edyrem life"], _
 		["", "#% Innate Damage"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "After blocking effect active"], _
+		["", "After blocking/taking weapon damage effect active"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -449,12 +449,12 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", "#% increased Healing from Potions"], _
 		["", ""], _
+		["", "Trophy counter"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", "Sunstone of the Twin Seas resist scroll counter (0-3)"], _
+		["", "Sunstone of the Twin Seas resist scroll counter (0-3), Dulra Aegis upgrades (0-3)"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -482,7 +482,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "Increases by 32 for each socketed rune"], _
 		["", "Innate Elemental damage +#%"], _
 		["", "Spell Focus +#"], _
 		["", ""], _
@@ -496,7 +496,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "Corrupted items count"], _
 		["", ""], _
 		["", ""], _
 		["", "Summoned minion attack rating +#%"], _
