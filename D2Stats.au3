@@ -8,7 +8,6 @@
 #include <Misc.au3>
 #include <NomadMemory.au3>
 #include <WinAPI.au3>
-#include <WinAPIError.au3>
 
 #include <AutoItConstants.au3>
 #include <ComboConstants.au3>
@@ -71,7 +70,6 @@ Main()
 
 #Region Main
 func Main()
-	_WINAPI_SetLastError(0)
 	_HotKey_Disable($HK_FLAG_D2STATS)
 
 	local $hTimerUpdateDelay = TimerInit()
@@ -2494,15 +2492,8 @@ func UpdateDllHandles()
 	local $pLoadLibraryA = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "LoadLibraryA")
 	if (not $pLoadLibraryA) then return _Debug("UpdateDllHandles", "Couldn't retrieve LoadLibraryA address.")
 
-	_Log("Pre Alloc Last Error",_WINAPI_GetLastError())
-
 	local $pAllocAddress = _MemVirtualAllocEx($g_ahD2Handle[1], 0, 0x100, BitOR($MEM_COMMIT, $MEM_RESERVE), $PAGE_EXECUTE_READWRITE)
 	if (@error) then return _Debug("UpdateDllHandles", "Failed to allocate memory.")
-
-	_Log("Post Alloc Last Error",_WINAPI_GetLastError())
-
-	Sleep(10000)
-	_WinAPI_WaitForSingleObject($pAllocAddress)
 
 	local $iDLLs = UBound($g_asDLL)
 	local $hDLLHandle[$iDLLs]
