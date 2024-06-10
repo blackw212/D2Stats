@@ -96,7 +96,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", "#% Faster Run/Walk"], _
-		["", "+# levels to skills from items and charms eg. +9 to Teleport"], _
+		["", "+# skills ([CLASS] only) eg. +17 to Divine Judgement"], _
 		["", ""], _
 		["", "#% Faster Hit Recovery"], _
 		["", ""], _
@@ -106,7 +106,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", "#% Faster Cast Rate"], _
 		["", ""], _
-		["", ""], _
+		["", "+# skills eg. +9 to Teleport"], _
 		["", "Slain Monsters Rest In Peace (1/0)"], _
 		["", "Curse Length Reduced by #%"], _
 		["", "Poison Length Reduced by #%"], _
@@ -130,7 +130,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "Attacker Takes Lightning Damage of #"], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "+#% Damage reflected"], _
 		["", ""], _
 		["", ""], _
 		["", "Freezes Target +#"], _
@@ -163,14 +163,14 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Uniterruptable Attack +#%"], _
+		["", "+#% Uniterruptable Attack"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Total Character Defence +%"], _
+		["", "+#% Total Character Defence"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -179,7 +179,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "+#% Damage vs. Necrobots ???"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -207,9 +207,9 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Life on striking +#"], _
-		["", "Mana on striking +#"], _
-		["", "Life on attack +#"], _
+		["", "+# Life on striking"], _
+		["", "+# Mana on striking"], _
+		["", "+# Life on attack"], _
 		["", "Melee devotion flag (disable non-melee skills)"], _
 		["", ""], _
 		["", "#% Max block chance modifier"], _
@@ -275,7 +275,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "Stun Attack"], _
 		["", ""], _
 		["", "Strength Factor +#"], _
 		["", ""], _
@@ -327,7 +327,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "# Active buffs/# Buff activations ???"], _
+		["", "# Buff activations???"], _
 		["", "#% To Fire Skill Damage"], _
 		["", "#% To Lightning Skill Damage"], _
 		["", "#% To Cold Skill Damage"], _
@@ -382,7 +382,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "+#% Bonus Damage to Bloodlust"], _
 		["", "+#% Bonus Elemental damage to Bloodlust"], _
 		["", ""], _
-		["", ""], _
+		["", "+#% Bonus damage to [SKILL] (Orange text)"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -392,7 +392,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Endurance unlock (1/0)"], _
+		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", "Continuity unlock (1/0)"], _
@@ -440,7 +440,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "+# to Maximum Necromancer minions"], _
 		["", ""], _
 		["", "Already upgraded"], _
 		["", "Summoned minion life +#%"], _
