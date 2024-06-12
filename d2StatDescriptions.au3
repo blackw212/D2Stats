@@ -31,8 +31,8 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", "+# Defense"], _
-		["", "+# vs. Missile"], _
-		["", "+# vs. Melee"], _
+		["", "+# Defense vs. Missile"], _
+		["", "+# Defense vs. Melee"], _
 		["", "Physical Damage Reduced by #"], _
 		["", "Magic Damage Reduced by #"], _
 		["", "Physical Resist +#%"], _
@@ -69,7 +69,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "Skill Faster Run Walk +#%"], _
 		["", "Skill Attack Speed +#%"], _
 		["", ""], _
-		["", "Quiver quantity #"], _
+		["", "Quiver/Throwing weapon quantity #"], _
 		["", "Equipped items value"], _
 		["", "Equipped items total Durability"], _
 		["", "+# Maximum Durability"], _
@@ -96,8 +96,8 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", "#% Faster Run/Walk"], _
-		["", "+# skills ([CLASS] only) eg. +17 to Divine Judgement"], _
-		["", ""], _
+		["", "+# to [SKILL] ([CLASS] only) eg. +17 to Divine Judgement"], _
+		["", "Full set flag (0/1)"], _
 		["", "#% Faster Hit Recovery"], _
 		["", ""], _
 		["", ""], _
@@ -106,8 +106,8 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", "#% Faster Cast Rate"], _
 		["", ""], _
-		["", "+# skills eg. +9 to Teleport"], _
-		["", "Slain Monsters Rest In Peace (1/0)"], _
+		["", "+# to [SKILL] eg. +9 to Teleport"], _
+		["", "Slain Monsters Rest In Peace (0/1)"], _
 		["", "Curse Length Reduced by #%"], _
 		["", "Poison Length Reduced by #%"], _
 		["", "Damage +#"], _
@@ -117,7 +117,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "Ignore Target Defense"], _
 		["", "#% Target Defense"], _
 		["", "Prevent Monster Heal"], _
-		["", "Half Freeze Duration (1/0)"], _
+		["", "Half Freeze Duration (0/1)"], _
 		["", "#% Bonus to Attack Rating"], _
 		["", "# to Monster Defense Per Hit"], _
 		["", "+#% Damage to Demons"], _
@@ -151,7 +151,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "+# Cold Absorb"], _
 		["", "Slows Target by #%"], _
 		["", ""], _
-		["", "Indestructible (1/0)"], _
+		["", "Indestructible (0/1)"], _
 		["", "Cannot Be Frozen"], _
 		["", "#% Slower Stamina Drain"], _
 		["", "#% Chance to Reanimate Target"], _
@@ -179,10 +179,10 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "+#% Damage vs. Necrobots ???"], _
+		["", "+#% Damage vs. [MONSTER]"], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "#% Defence multiplier override (Mostly 'Total character defence = 0')"], _
+		["", "Craft points - obsolete"], _
 		["", "Melee devotion flag (20% DR)"], _
 		["Signets of Learning used", "Signets of Learning used"], _
 		["", ""], _
@@ -198,7 +198,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "#% Chance to cast [SKILL] on kill"], _
 		["", "#% Chance to cast [SKILL] when you die"], _
 		["", "#% Chance to cast [SKILL] on striking"], _
-		["", ""], _
+		["", "#% Chance to cast [SKILL] when you level-up"], _
 		["", ""], _
 		["", "#% Chance to cast [SKILL] when struck"], _
 		["", ""], _
@@ -217,7 +217,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "+# to maximum damage (Based on character level) - DOESN'T MATCH IN-GAME VALUES"], _
 		["", "Riftwalker Eye quest #3"], _
 		["", ""], _
 		["", ""], _
@@ -282,19 +282,19 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "#% Chance to cast [SKILL] when struck"], _
 		["", "#% Chance to cast [SKILL] when struck by a missile"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Orb effects applied to this item are doubled amount"], _
+		["", "Orb effects applied to this item are doubled amount (count * 2)"], _
 		["", "Mystic orb used amount"], _
 		["", ""], _
 		["", "#% Chance to cast [SKILL] on death blow"], _
 		["", ""], _
 		["", ""], _
-		["", "Mana on attack +#"], _
+		["", "+# Mana on attack"], _
 		["", ""], _
 		["", "Mana drain -#% (from Werewolf morph)"], _
 		["", ""], _
@@ -343,7 +343,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "#% Critical Strike"], _
+		["", "+#% Critical Strike"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -355,9 +355,9 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Charm counter (Amount *2) (except Ennead charm - 1pt, and Riftwalker - 6 full upgraded)"], _
+		["", "Charm amount (count * 2) (for explanation see 'Basic' tab)"], _
 		["", "+#% to Physical/Magic spell damage"], _
-		["", ""], _
+		["", "-#% To Enemy Physical/Magic Resistance"], _
 		["", "Strength +#%"], _
 		["", "Dexterity +#%"], _
 		["", "Energy +#%"], _
@@ -366,8 +366,8 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "Attacker Takes Cold Damage of #"], _
+		["", "Attacker Takes Fire Damage of #"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -382,22 +382,22 @@ global $g_d2StatNames[][2] = [ _
 		["", "+#% Bonus Damage to Bloodlust"], _
 		["", "+#% Bonus Elemental damage to Bloodlust"], _
 		["", ""], _
-		["", "+#% Bonus damage to [SKILL] (Orange text)"], _
+		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", "+#% Bonus Damage to Mark of the Wild"], _
+		["", "+#% Bonus Elemental Damage to Mark of the Wild"], _
+		["", "+#% Duration Bonus to Mark of the Wild"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", "Continuity unlock (1/0)"], _
-		["", "Specialization unlock (1/0)"], _
-		["", ""], _
+		["", "Continuity unlock (0/1)"], _
+		["", "Specialization unlock (0/1)"], _
+		["", "Valthek set aura flag (0/1)"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -442,38 +442,38 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", "+# to Maximum Necromancer minions"], _
 		["", ""], _
-		["", "Already upgraded"], _
+		["", "Already upgraded amount"], _
 		["", "Summoned minion life +#%"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", "#% increased Healing from Potions"], _
 		["", ""], _
-		["", "Trophy counter"], _
+		["", "Trophy amount"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Sunstone of the Twin Seas resist scroll counter (0-3), Dulra Aegis upgrades (0-3)"], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "Sunstone of the Twin Seas resist scroll amount (0-3), Dulra Aegis upgrade amount (0-3)"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
+		["", "+#% Bonus damage to Vessel of Judgement"], _
 		["", ""], _
 		["", ""], _
+		["", ""], _
+		["", ""], _
+		["", ""], _
+		["", "+#% Bonus damage to Vessel of Retribution"], _
 		["", ""], _
 		["", "Summoned minion damage +#%"], _
 		["", ""], _
 		["", ""], _
-		["", "Ennead skill unlock flag (1/0)"], _
-		["", "Black Road unlock (1/0)"], _
+		["", "Ennead skill unlock flag (0/1)"], _
+		["", "Black Road unlock (0/1)"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -482,12 +482,12 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Increases by 32 for each socketed rune"], _
+		["", "Socketed rune amount (count * 32)"], _
 		["", "Innate Elemental damage +#%"], _
-		["", "Spell Focus +#"], _
+		["", "+# Spell Focus"], _
 		["", ""], _
 		["", "Summoned minion resistances +#%"], _
-		["", ""], _
+		["", "+#% Spell Focus (from items/runes)"], _
 		["", "Target takes additional damage +# "], _
 		["", ""], _
 		["", ""], _
@@ -496,7 +496,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Corrupted items count"], _
+		["", "Corrupted items amount"], _
 		["", ""], _
 		["", ""], _
 		["", "Summoned minion attack rating +#%"], _
@@ -507,7 +507,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "Runes affecting Gematria effect amount"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
