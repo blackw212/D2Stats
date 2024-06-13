@@ -19,12 +19,12 @@ global $g_d2StatNames[][2] = [ _
 		["", "+#% Enhanced Damage"], _
 		["", ""], _
 		["", "+# to Attack rating"], _
-		["", "+#% Increased chance of blocking"], _
+		["", "+#% Base block chance"], _
 		["", "+# to Minimum 1-handed damage"], _
 		["", "+# to Maximum 1-handed damage"], _
 		["", "+# to Minimum 2-handed damage"], _
 		["", "+# to Maximum 2-handed damage"], _
-		["", "+# to Enhanced Weapon Damage"], _
+		["", "+#% to Enhanced Weapon Damage"], _
 		["", ""], _
 		["", "Regenerate Mana #%"], _
 		["", "Heal Stamina #%"], _
@@ -34,7 +34,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "+# Defense vs. Missile"], _
 		["", "+# Defense vs. Melee"], _
 		["", "Physical Damage Reduced by #"], _
-		["", "Magic Damage Reduced by #"], _
+		["", "Elemental/Magic Damage Reduced by #"], _
 		["", "Physical Resist +#%"], _
 		["", "Magic Resist +#%"], _
 		["", "+#% to Maximum Magic Resist"], _
@@ -69,7 +69,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "Skill Faster Run Walk +#%"], _
 		["", "Skill Attack Speed +#%"], _
 		["", ""], _
-		["", "Quiver/Throwing weapon quantity #"], _
+		["", "Quiver/Throwing weapon quantity amount"], _
 		["", "Equipped items value"], _
 		["", "Equipped items total Durability"], _
 		["", "+# Maximum Durability"], _
@@ -78,15 +78,15 @@ global $g_d2StatNames[][2] = [ _
 		["", "Increase Maximum Life #%"], _
 		["", "Increase Maximum Mana #%"], _
 		["", "Attacker Takes Damage of #"], _
-		["", "#% Extra Gold from Monsters"], _
-		["", "#% Better Chance of Getting Magic Items"], _
+		["", "#% Gold Find"], _
+		["", "#% Magic Find"], _
 		["", "Knockback"], _
 		["", "Unknown (Invisible)"], _
-		["", "Bonus +# to [ALL_CLASSES] skill level"], _
-		["", "Bonus +# to [ALL_CLASSES] skill level"], _
+		["", "+# to [CLASS] skill levels"], _
+		["", "+# to [ALL_CLASSES] skill levels"], _
 		["", "#% To Experience Gained"], _
 		["", "+# Life After Each Kill"], _
-		["", "Reduces Prices #%"], _
+		["", "+#% to All Vendor prices"], _
 		["", ""], _
 		["", "+# to Light Radius"], _
 		["", ""], _
@@ -96,8 +96,8 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", "#% Faster Run/Walk"], _
-		["", "+# to [SKILL] ([CLASS] only) eg. +17 to Divine Judgement"], _
-		["", "Full set flag (0/1)"], _
+		["", "+# to [SKILL]"], _
+		["", ""], _
 		["", "#% Faster Hit Recovery"], _
 		["", ""], _
 		["", ""], _
@@ -106,7 +106,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", "#% Faster Cast Rate"], _
 		["", ""], _
-		["", "+# to [SKILL] eg. +9 to Teleport"], _
+		["", "+# to [SKILL]"], _
 		["", "Slain Monsters Rest In Peace (0/1)"], _
 		["", "Curse Length Reduced by #%"], _
 		["", "Poison Length Reduced by #%"], _
@@ -126,7 +126,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "+# to Attack Rating against Undead"], _
 		["", "Throwable"], _
 		["", ""], _
-		["", "All Skill Levels +#"], _
+		["", "+# to All Skills"], _
 		["", "Attacker Takes Lightning Damage of #"], _
 		["", ""], _
 		["", ""], _
@@ -170,7 +170,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "+#% Total Character Defence"], _
+		["", "+#% Total Character Defense"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -181,9 +181,9 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", "+#% Damage vs. [MONSTER]"], _
 		["", ""], _
-		["", "#% Defence multiplier override (Mostly 'Total character defence = 0')"], _
-		["", "Craft points - obsolete"], _
-		["", "Melee devotion flag (20% DR)"], _
+		["", "#% Defense bonus multiplier (Mostly 'Total character defense = 0' and Runemaster)"], _
+		["", "Craft points - OBSOLETE"], _
+		["", "20% Damage reduction flag (0/1)"], _
 		["Signets of Learning used", "Signets of Learning used"], _
 		["", ""], _
 		["", "Barbarian Stance (0-None, 1-Lion, 2-Bear, 3-Snake, 4-Eagle, 5-Wolf)"], _
@@ -209,15 +209,15 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", "+# Life on striking"], _
 		["", "+# Mana on striking"], _
-		["", "+# Life on attack"], _
-		["", "Melee devotion flag (disable non-melee skills)"], _
+		["", "+# Life on melee attack"], _
+		["", "Disable non-melee skills flag (0/1)"], _
 		["", ""], _
 		["", "#% Max block chance modifier"], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", "+# to maximum damage (Based on character level) - DOESN'T MATCH IN-GAME VALUES"], _
+		["", "+# Defense (Based on Character Level) [(value / 32) * [LEVEL]]"], _
+		["", "+#% Enhanced Defense (Based on Character Level) [(value / 32) * [LEVEL]]"], _
+		["", "+# to Life (Based on Character Level) [(value / 32) * [LEVEL]]"], _
+		["", "+# to Mana (Based on Character Level) [(value / 32) * [LEVEL]]"], _
+		["", "+# to Maximum damage (Based on Character Level) [(value / 32) * [LEVEL]]"], _
 		["", "Riftwalker Eye quest #3"], _
 		["", ""], _
 		["", ""], _
@@ -270,7 +270,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
+		["", "Chance to Crush attacker by +#%"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -282,7 +282,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "#% Chance to cast [SKILL] when struck"], _
+		["", "#% Chance to cast [SKILL] when attacked"], _
 		["", "#% Chance to cast [SKILL] when struck by a missile"], _
 		["", ""], _
 		["", ""], _
@@ -294,7 +294,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "#% Chance to cast [SKILL] on death blow"], _
 		["", ""], _
 		["", ""], _
-		["", "+# Mana on attack"], _
+		["", "+# Mana on melee attack"], _
 		["", ""], _
 		["", "Mana drain -#% (from Werewolf morph)"], _
 		["", ""], _
@@ -337,8 +337,8 @@ global $g_d2StatNames[][2] = [ _
 		["", "-#% To Enemy Cold Resistance"], _
 		["", "-#% To Enemy Poison Resistance"], _
 		["", "#% Critical Strike (for Barbarian)"], _
-		["", "Dodge +#% (Chance to avoid melee while standing)"], _
-		["", "Avoid +#% (Chance to avoid projectile while standing)"], _
+		["", "Dodge +#% (Chance to avoid melee attack while standing)"], _
+		["", "Avoid +#% (Chance to avoid projectile attack while standing)"], _
 		["", "Evade +#% (Chance to avoid any attack while moving)"], _
 		["", ""], _
 		["", ""], _
@@ -363,7 +363,7 @@ global $g_d2StatNames[][2] = [ _
 		["", "Energy +#%"], _
 		["", "Vitality +#%"], _
 		["", "Slows Attacker +#%"], _
-		["", ""], _
+		["", "Attacker flees after striking +#%"], _
 		["", ""], _
 		["", ""], _
 		["", "Attacker Takes Cold Damage of #"], _
@@ -430,6 +430,7 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
+		["", "+#% Bonus to Poison skill duration"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -437,9 +438,8 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", ""], _
-		["", ""], _
+		["", "+# Life when struck by an enemy"], _
+		["", "+# Mana when struck by an enemy"], _
 		["", "+# to Maximum Necromancer minions"], _
 		["", ""], _
 		["", "Already upgraded amount"], _
@@ -507,8 +507,9 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", "Runes affecting Gematria effect amount"], _
+		["", "Runes contributing to Gematria"], _
 		["", ""], _
+		["", "#% Chance to cast [SKILL] when blocking"], _
 		["", ""], _
 		["", ""], _
 		["", ""], _
@@ -898,11 +899,10 @@ global $g_d2StatNames[][2] = [ _
 		["", ""], _
 		["", ""], _
 		["", ""], _
-		["", ""], _
-		["", "Strength +#"], _
-		["", "Dexterity +#"], _
-		["", "Vitality +#"], _
-		["", "Energy +#"], _
+		["", "+# to Strength (base)"], _
+		["", "+# to Dexterity (base)"], _
+		["", "+# to Vitality (base)"], _
+		["", "+# to Energy (base)"], _
 		["", "Spell Focus cap (max 100%)"], _
 		["", ""], _
 		["", ""], _
