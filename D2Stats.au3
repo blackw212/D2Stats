@@ -60,6 +60,7 @@ endif
 Opt("MustDeclareVars", 1)
 Opt("GUICloseOnESC", 0)
 Opt("GUIOnEventMode", 1)
+Opt("GUIResizeMode", BitOR($GUI_DOCKAUTO, $GUI_DOCKHEIGHT))
 
 DefineGlobals()
 
@@ -1474,6 +1475,20 @@ func _GUI_Volume($iIndex, $iValue = default)
 
 	return GUICtrlRead($id)
 endfunc
+
+func WM_GETMINMAXINFO($hWnd, $MsgID, $wParam, $lParam)
+	;Credits: iCode
+    ;https://www.autoitscript.com/forum/topic/159947-resize-tabs-relative-to-gui-width/
+	#forceref $MsgID, $wParam
+    If Not IsHWnd($hWnd) Then Return $GUI_RUNDEFMSG
+
+    Local $minmaxinfo = DllStructCreate("int;int;int;int;int;int;int;int;int;int", $lParam)
+
+    DllStructSetData($minmaxinfo, 7, $g_WindowPos[2]) ; enforce a minimum width for the gui (min width will be the initial width of the gui)
+    DllStructSetData($minmaxinfo, 8, $g_WindowPos[3]) ; enforce a minimum height for the gui (min height will be the initial height of the gui)
+
+    Return $GUI_RUNDEFMSG
+endfunc
 #EndRegion
 
 #Region GUI
@@ -1823,21 +1838,23 @@ func CreateGUI()
 
 	local $sTitle = not @Compiled ? "Test" : StringFormat("D2Stats %s - [%s]", FileGetVersion(@AutoItExe, "FileVersion"), FileGetVersion(@AutoItExe, "Comments"))
 
-	global $g_hGUI = GUICreate($sTitle, $g_iGUIWidth, $g_iGUIHeight, -1, -1, -1)
+	global $g_hGUI = GUICreate($sTitle, $g_iGUIWidth, $g_iGUIHeight, -1, -1, BitOR($GUI_SS_DEFAULT_GUI,$WS_SIZEBOX))
 	GUISetFont(9 / _GetDPI()[2], 0, 0, "Courier New")
 	GUISetOnEvent($GUI_EVENT_CLOSE, "_Exit")
-
+	global $g_WindowPos = WinGetPos($g_hGUI)
+	
 	local $iBottomButtonCoords = $g_iGUIHeight - 30
 
 	global $g_idReadStats = GUICtrlCreateButton("Read", $g_iGroupXStart, $iBottomButtonCoords, 70, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_ReadStats")
-	
+
 	global $g_idShowDiff = GUICtrlCreateButton("Diff", $g_iGroupXStart + 78, $iBottomButtonCoords, 70, 25)
 	GUICtrlSetOnEvent(-1, "CompareStats")
 
-	global $g_idReadMercenary = GUICtrlCreateCheckbox("Mercenary", $g_iGroupXStart + 156, $iBottomButtonCoords)
+	global $g_idReadMercenary = GUICtrlCreateCheckbox("Mercenary", $g_iGroupXStart + 156, $iBottomButtonCoords + 1)
 
 	global $g_idTab = GUICtrlCreateTab(0, 0, $g_iGUIWidth, 0, $TCS_FOCUSNEVER)
+	GUICtrlSetResizing (-1, $GUI_DOCKMENUBAR)
 	GUICtrlSetOnEvent(-1, "OnClick_Tab")
 
 	local $idDummySelectAll = GUICtrlCreateDummy()
@@ -1851,7 +1868,7 @@ func CreateGUI()
 	_GUI_GroupFirst()
 	_GUI_NewText(00, "Character data")
 	_GUI_NewItem(01, "Level: {012}")
-	_GUI_NewItem(02, "Experience: {013}")
+	_GUI_NewItem(02, "Exp: {013}")
 	
 	_GUI_NewItem(04, "Gold: {014}", "Current gold on character.||Max gold on character calculated from the following formula:|(CharacterLevel*10,000)")
 	_GUI_NewItem(05, "Stash: {015} [015:2500000/1000000]", "Current gold in stash||Max gold in stash is constant:|2,500,000")
@@ -1981,13 +1998,13 @@ func CreateGUI()
 
 	for $i = 1 to $g_iGUIOptionsGeneral
 		_GUI_NewOption($i-1, $g_avGUIOptionList[$iOption][0], $g_avGUIOptionList[$iOption][3], $g_avGUIOptionList[$iOption][4])
-		$iOption += 1
+			$iOption += 1
 	next
 
 	GUICtrlCreateTabItem("Hotkeys")
 	for $i = 1 to $g_iGUIOptionsHotkey
 		_GUI_NewOption($i-1, $g_avGUIOptionList[$iOption][0], $g_avGUIOptionList[$iOption][3], $g_avGUIOptionList[$iOption][4])
-		$iOption += 1
+			$iOption += 1
 	next
 	
 	GUICtrlCreateTabItem("Notifier")
@@ -2006,6 +2023,8 @@ func CreateGUI()
 	GUICtrlSetOnEvent(-1, "OnClick_NotifyDelete")
 
 	global $g_idNotifyEdit = GUICtrlCreateEdit("", 4, _GUI_LineY(2), $g_iGUIWidth - 8, $iBottomButtonCoords - _GUI_LineY(2) - 5)
+	GUICtrlSetResizing (-1, $GUI_DOCKAUTO)
+	
 	global $g_idNotifySave = GUICtrlCreateButton("Save", 4 + 0*62, $iBottomButtonCoords, 60, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_NotifySave")
 	global $g_idNotifyReset = GUICtrlCreateButton("Reset", 4 + 1*62, $iBottomButtonCoords, 60, 25)
@@ -2022,16 +2041,16 @@ func CreateGUI()
 	for $i = 0 to $g_iNumSounds - 1
 		local $iLine = 1 + $i*2
 
-		local $id = GUICtrlCreateSlider(60, _GUI_LineY($iLine), 200, 25, BitOR($TBS_TOOLTIPS, $TBS_AUTOTICKS, $TBS_ENABLESELRANGE))
+		local $id = GUICtrlCreateSlider(60, _GUI_LineY($iLine), $g_iGUIWidth-128, 25, BitOR($TBS_TOOLTIPS, $TBS_AUTOTICKS, $TBS_ENABLESELRANGE))
 		GUICtrlSetLimit(-1, 10, 0)
 		GUICtrlSetOnEvent(-1, "OnChange_VolumeSlider")
-		_GUICtrlSlider_SetTicFreq($id, 1)
+			_GUICtrlSlider_SetTicFreq($id, 1)
 
 		_GUI_NewTextBasic($iLine, "Sound " & ($i + 1), False)
 
-		GUICtrlCreateButton("Test", 260, _GUI_LineY($iLine), 60, 25)
+		GUICtrlCreateButton("Test", $g_iGUIWidth-68, _GUI_LineY($iLine), 60, 25)
 		GUICtrlSetOnEvent(-1, "OnClick_VolumeTest")
-
+	
 		if ($i == 0) then $g_idVolumeSlider = $id
 		_GUI_Volume($i, 5)
 	next
@@ -2055,7 +2074,7 @@ func CreateGUI()
 	GUICtrlCreateTabItem("")
 	UpdateGUI()
 	GUIRegisterMsg($WM_COMMAND, "WM_COMMAND")
-
+	GUIRegisterMsg($WM_GETMINMAXINFO, "WM_GETMINMAXINFO")
 	GUISetState(@SW_SHOW)
 endfunc
 
