@@ -1841,9 +1841,8 @@ func CreateGUI()
 	global $g_hGUI = GUICreate($sTitle, $g_iGUIWidth, $g_iGUIHeight, -1, -1, BitOR($GUI_SS_DEFAULT_GUI,$WS_SIZEBOX))
 	GUISetFont(9 / _GetDPI()[2], 0, 0, "Courier New")
 	GUISetOnEvent($GUI_EVENT_CLOSE, "_Exit")
-	$g_WindowPos = WinGetPos($g_hGUI)
-
-
+	global $g_WindowPos = WinGetPos($g_hGUI)
+	
 	local $iBottomButtonCoords = $g_iGUIHeight - 30
 
 	global $g_idReadStats = GUICtrlCreateButton("Read", $g_iGroupXStart, $iBottomButtonCoords, 70, 25)
@@ -2555,8 +2554,6 @@ endfunc
 #Region Global Variables
 func DefineGlobals()
 	global $g_sLog = ""
-
-	Global $g_WindowPos
 
 	global const $HK_FLAG_D2STATS = BitOR($HK_FLAG_DEFAULT, $HK_FLAG_NOUNHOOK)
 
