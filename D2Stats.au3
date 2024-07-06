@@ -62,6 +62,97 @@ Opt("GUICloseOnESC", 0)
 Opt("GUIOnEventMode", 1)
 Opt("GUIResizeMode", BitOR($GUI_DOCKAUTO, $GUI_DOCKHEIGHT))
 
+#Region Global Variables
+func DefineGlobals()
+	global $g_sLog = ""
+
+	global const $HK_FLAG_D2STATS = BitOR($HK_FLAG_DEFAULT, $HK_FLAG_NOUNHOOK)
+
+	global const $g_iColorRed	= 0xFF0000
+	global const $g_iColorBlue	= 0x0066CC
+	global const $g_iColorGold	= 0x808000
+	global const $g_iColorGreen	= 0x008000
+	global const $g_iColorPink	= 0xFF00FF
+
+	global enum $ePrintWhite, $ePrintRed, $ePrintLime, $ePrintBlue, $ePrintGold, $ePrintGrey, $ePrintBlack, $ePrintUnk, $ePrintOrange, $ePrintYellow, $ePrintGreen, $ePrintPurple
+	global enum $eQualityNone, $eQualityLow, $eQualityNormal, $eQualitySuperior, $eQualityMagic, $eQualitySet, $eQualityRare, $eQualityUnique, $eQualityCraft, $eQualityHonorific
+	global $g_iQualityColor[] = [0x0, $ePrintWhite, $ePrintWhite, $ePrintWhite, $ePrintBlue, $ePrintLime, $ePrintYellow, $ePrintGold, $ePrintOrange, $ePrintGreen]
+
+	global $g_avGUI[256][3] = [[0]]			; Text, X, Control [0] Count
+	global $g_avGUIOption[32][3] = [[0]]	; Option, Control, Function [0] Count
+
+	global enum $eNotifyFlagsTier, $eNotifyFlagsQuality, $eNotifyFlagsMisc, $eNotifyFlagsNoMask, $eNotifyFlagsColour, $eNotifyFlagsSound, $eNotifyFlagsName, $eNotifyFlagsStat, $eNotifyFlagsMatchStats, $eNotifyFlagsMatch, $eNotifyFlagsLast
+	global $g_asNotifyFlags[$eNotifyFlagsLast][32] = [ _
+		[ "0", "1", "2", "3", "4", "sacred", "angelic", "master" ], _
+		[ "low", "normal", "superior", "magic", "set", "rare", "unique", "craft", "honor" ], _
+		[ "eth", "socket" ], _
+		[], _
+		[ "clr_none", "white", "red", "lime", "blue", "gold", "grey", "black", "clr_unk", "orange", "yellow", "green", "purple", "show", "hide" ], _
+		[ "sound_none" ], _
+		[ "name" ], _
+		[ "stat" ] _
+	]
+	global $g_aiFlagsCountPerLine[0]
+
+	global const $g_iNumSounds = 6 ; Max 31
+	global $g_idVolumeSlider
+
+	for $i = 1 to $g_iNumSounds
+		$g_asNotifyFlags[$eNotifyFlagsSound][$i] = "sound" & $i
+	next
+
+	global const $g_sNotifierRulesDirectory = @WorkingDir & "\NotifierRules"
+	global const $g_sNotifierRulesExtension = ".rules"
+	global $g_avNotifyCache[0][3]					; Name, Tier flag, Last line of name
+	global $g_avNotifyCompile[0][$eNotifyFlagsLast]	; Flags, Regex
+	global $g_bNotifyCache = True
+	global $g_bNotifyCompile = True
+	global $g_bNotifierChanged = False
+
+	global const $g_iNumStats = 1024
+	global $g_aiStatsCache[2][$g_iNumStats]
+	global $g_aiStatsCacheCopy[2][$g_iNumStats]
+
+	global $g_asDLL[] = ["D2Client.dll", "D2Common.dll", "D2Win.dll", "D2Lang.dll", "D2Sigma.dll"]
+	global $g_hD2Client, $g_hD2Common, $g_hD2Win, $g_hD2Lang, $g_hD2Sigma
+	global $g_ahD2Handle
+
+	global $g_iD2pid, $g_iUpdateFailCounter
+
+	global $g_pD2sgpt, $g_pD2InjectPrint, $g_pD2InjectString, $g_pD2InjectParams, $g_pD2InjectGetString, $g_pD2Client_GetItemName, $g_pD2Client_GetItemStat, $g_pD2Common_GetUnitStat
+
+	global $g_bHotkeysEnabled = False
+	global $g_ShowItems = False
+	global $g_hTimerCopyName = 0
+	global $g_sCopyName = ""
+
+	global const $g_iGUIOptionsGeneral = 10
+	global const $g_iGUIOptionsHotkey = 5
+
+	global $g_avGUIOptionList[][5] = [ _
+		["nopickup", 0, "cb", "Automatically enable /nopickup"], _
+		["mousefix", 0, "cb", "Continue attacking when monster dies under cursor"], _
+		["goblin-alert", 1, "cb", "Play sound (sound 6) when goblins are nearby."], _
+		["unique-tier", 1, "cb", "Show sacred tier of unique (SU/SSU/SSSU)"], _
+		["notify-enabled", 1, "cb", "Enable notifier"], _
+		["notify-superior", 0, "cb", "Notifier prefixes superior items with 'Superior'"], _
+		["notify-only-filtered", 0, "cb", "Only show filtered stats"], _
+		["oneline-name", 0, "cb", "One line item name and stats notification style"], _
+		["debug-notifier", 0, "cb", "Debug item notifications with match criteria and matching rule"], _
+		["use-wav", 0, "cb", "Use .wav instead of .mp3 for sounds (For Linux Compatibility)"], _
+		["copy", 0x002D, "hk", "Copy item text", "HotKey_CopyItem"], _
+		["copy-name", 0, "cb", "Only copy item name"], _
+		["filter", 0x0124, "hk", "Inject/eject DropFilter", "HotKey_DropFilter"], _
+		["toggle", 0x0024, "hk", "Always show items", "HotKey_ToggleShowItems"], _
+		["readstats", 0x0000, "hk", "Read stats without tabbing out of the game", "HotKey_ReadStats"], _
+		["notify-text", $g_sNotifyTextDefault, "tx"], _
+		["selectedNotifierRulesName", "Default", "tx"] _
+	]
+	global $g_goblinIds = [2774, 2775, 2776, 2779, 2780, 2781, 2784, 2785, 2786, 2787, 2788, 2789, 2790, 2791, 2792, 2793, 2794, 2795, 2799, 2802, 2803, 2805]
+	global $g_goblinBuffer[] = []
+endfunc
+#EndRegion
+
 DefineGlobals()
 
 OnAutoItExitRegister("_Exit")
@@ -1785,13 +1876,13 @@ endfunc
 
 func RefreshNotifyRulesCombo($sSelectedNotifierRulesName = "")
 	global $g_aNotifierRulesFilePaths = _FileListToArray($g_sNotifierRulesDirectory, "*" & $g_sNotifierRulesExtension, $FLTA_FILES, True)
-	if (@error not == 0 or $g_aNotifierRulesFilePaths == 0) then
+	if (@error <> 0 or $g_aNotifierRulesFilePaths == 0) then
 		SetError(0)
 		CreateNotifierRulesFile(GetNotifierRulesFilePath("Default"), _GUI_Option("notify-text"))
 		$g_aNotifierRulesFilePaths = _FileListToArray($g_sNotifierRulesDirectory, "*" & $g_sNotifierRulesExtension, $FLTA_FILES, True)
 	endif
 
-	if (@error not == 0 or $g_aNotifierRulesFilePaths == 0) then
+	if (@error <> 0 or $g_aNotifierRulesFilePaths == 0) then
 		MsgBox($MB_ICONERROR, "Error!", "Could not locate/create any notifier rules files inside " & $g_sNotifierRulesDirectory)
 		return False
 	endif
@@ -2548,96 +2639,5 @@ func UpdateDllHandles()
 	if ($bFailed) then return _Debug("UpdateDllHandles", "Couldn't retrieve dll addresses.")
 
 	return True
-endfunc
-#EndRegion
-
-#Region Global Variables
-func DefineGlobals()
-	global $g_sLog = ""
-
-	global const $HK_FLAG_D2STATS = BitOR($HK_FLAG_DEFAULT, $HK_FLAG_NOUNHOOK)
-
-	global const $g_iColorRed	= 0xFF0000
-	global const $g_iColorBlue	= 0x0066CC
-	global const $g_iColorGold	= 0x808000
-	global const $g_iColorGreen	= 0x008000
-	global const $g_iColorPink	= 0xFF00FF
-
-	global enum $ePrintWhite, $ePrintRed, $ePrintLime, $ePrintBlue, $ePrintGold, $ePrintGrey, $ePrintBlack, $ePrintUnk, $ePrintOrange, $ePrintYellow, $ePrintGreen, $ePrintPurple
-	global enum $eQualityNone, $eQualityLow, $eQualityNormal, $eQualitySuperior, $eQualityMagic, $eQualitySet, $eQualityRare, $eQualityUnique, $eQualityCraft, $eQualityHonorific
-	global $g_iQualityColor[] = [0x0, $ePrintWhite, $ePrintWhite, $ePrintWhite, $ePrintBlue, $ePrintLime, $ePrintYellow, $ePrintGold, $ePrintOrange, $ePrintGreen]
-
-	global $g_avGUI[256][3] = [[0]]			; Text, X, Control [0] Count
-	global $g_avGUIOption[32][3] = [[0]]	; Option, Control, Function [0] Count
-
-	global enum $eNotifyFlagsTier, $eNotifyFlagsQuality, $eNotifyFlagsMisc, $eNotifyFlagsNoMask, $eNotifyFlagsColour, $eNotifyFlagsSound, $eNotifyFlagsName, $eNotifyFlagsStat, $eNotifyFlagsMatchStats, $eNotifyFlagsMatch, $eNotifyFlagsLast
-		global $g_asNotifyFlags[$eNotifyFlagsLast][32] = [ _
-		[ "0", "1", "2", "3", "4", "sacred", "angelic", "master" ], _
-		[ "low", "normal", "superior", "magic", "set", "rare", "unique", "craft", "honor" ], _
-		[ "eth", "socket" ], _
-		[], _
-		[ "clr_none", "white", "red", "lime", "blue", "gold", "grey", "black", "clr_unk", "orange", "yellow", "green", "purple", "show", "hide" ], _
-		[ "sound_none" ], _
-		[ "name" ], _
-		[ "stat" ] _
-	]
-	global $g_aiFlagsCountPerLine[0]
-
-	global const $g_iNumSounds = 6 ; Max 31
-	global $g_idVolumeSlider
-
-	for $i = 1 to $g_iNumSounds
-		$g_asNotifyFlags[$eNotifyFlagsSound][$i] = "sound" & $i
-	next
-
-	global const $g_sNotifierRulesDirectory = @WorkingDir & "\NotifierRules"
-	global const $g_sNotifierRulesExtension = ".rules"
-	global $g_avNotifyCache[0][3]					; Name, Tier flag, Last line of name
-	global $g_avNotifyCompile[0][$eNotifyFlagsLast]	; Flags, Regex
-	global $g_bNotifyCache = True
-	global $g_bNotifyCompile = True
-	global $g_bNotifierChanged = False
-
-	global const $g_iNumStats = 1024
-	global $g_aiStatsCache[2][$g_iNumStats]
-	global $g_aiStatsCacheCopy[2][$g_iNumStats]
-
-	global $g_asDLL[] = ["D2Client.dll", "D2Common.dll", "D2Win.dll", "D2Lang.dll", "D2Sigma.dll"]
-	global $g_hD2Client, $g_hD2Common, $g_hD2Win, $g_hD2Lang, $g_hD2Sigma
-	global $g_ahD2Handle
-
-	global $g_iD2pid, $g_iUpdateFailCounter
-
-	global $g_pD2sgpt, $g_pD2InjectPrint, $g_pD2InjectString, $g_pD2InjectParams, $g_pD2InjectGetString, $g_pD2Client_GetItemName, $g_pD2Client_GetItemStat, $g_pD2Common_GetUnitStat
-
-	global $g_bHotkeysEnabled = False
-	global $g_ShowItems = False
-	global $g_hTimerCopyName = 0
-	global $g_sCopyName = ""
-
-	global const $g_iGUIOptionsGeneral = 10
-	global const $g_iGUIOptionsHotkey = 5
-
-	global $g_avGUIOptionList[][5] = [ _
-		["nopickup", 0, "cb", "Automatically enable /nopickup"], _
-		["mousefix", 0, "cb", "Continue attacking when monster dies under cursor"], _
-		["goblin-alert", 1, "cb", "Play sound (sound 6) when goblins are nearby."], _
-		["unique-tier", 1, "cb", "Show sacred tier of unique (SU/SSU/SSSU)"], _
-		["notify-enabled", 1, "cb", "Enable notifier"], _
-		["notify-superior", 0, "cb", "Notifier prefixes superior items with 'Superior'"], _
-		["notify-only-filtered", 0, "cb", "Only show filtered stats"], _
-		["oneline-name", 0, "cb", "One line item name and stats notification style"], _
-		["debug-notifier", 0, "cb", "Debug item notifications with match criteria and matching rule"], _
-		["use-wav", 0, "cb", "Use .wav instead of .mp3 for sounds (For Linux Compatibility)"], _
-		["copy", 0x002D, "hk", "Copy item text", "HotKey_CopyItem"], _
-		["copy-name", 0, "cb", "Only copy item name"], _
-		["filter", 0x0124, "hk", "Inject/eject DropFilter", "HotKey_DropFilter"], _
-		["toggle", 0x0024, "hk", "Always show items", "HotKey_ToggleShowItems"], _
-		["readstats", 0x0000, "hk", "Read stats without tabbing out of the game", "HotKey_ReadStats"], _
-		["notify-text", $g_sNotifyTextDefault, "tx"], _
-		["selectedNotifierRulesName", "Default", "tx"] _
-	]
-	global $g_goblinIds = [2774, 2775, 2776, 2779, 2780, 2781, 2784, 2785, 2786, 2787, 2788, 2789, 2790, 2791, 2792, 2793, 2794, 2795, 2799, 2802, 2803, 2805]
-	global $g_goblinBuffer[] = []
 endfunc
 #EndRegion
