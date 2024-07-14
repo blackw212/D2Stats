@@ -5,7 +5,7 @@ global const $g_sNotifyTextDefault = "hide ""^Gold$""" & @CRLF & _
 "hide ""Ring$|Amulet|Quiver"" normal magic" & @CRLF & _
 "hide ""^Key$""" & @CRLF & _
 "" & @CRLF & _
-"#SOCKETABLE--------------------------" & @CRLF & _
+"#SOCKETABLES-------------------------" & @CRLF & _
 """^(El|Eld|Tir|Nef|Eth|Ith|Tal|Ral|Ort|Thul|Amn|Sol|Shael|Dol|Hel|Io|Lum|Ko|Fal|Lem|Pul|Um|Mal|Ist|Gul|Vex|Ohm|Lo|Sur|Ber|Jah|Cham|Zod) Rune$""" & @CRLF & _
 """Container"" purple" & @CRLF & _
 """Runestone|Essence$"" red" & @CRLF & _
@@ -15,16 +15,15 @@ global const $g_sNotifyTextDefault = "hide ""^Gold$""" & @CRLF & _
 "hide ""(Amethyst|Topaz|Sapphire|Emerald|Ruby|Diamond|Skull|Onyx|Bloodstone|Turquoise|Amber|Rainbow Stone)""" & @CRLF & _
 "show ""^Perfect"" purple" & @CRLF & _
 "" & @CRLF & _
-"#CYCLE--------------------------------" & @CRLF & _
+"#CYCLE-------------------------------" & @CRLF & _
 """Cycle""" & @CRLF & _
-"""Medium Cycle"" red" & @CRLF & _
-"""Large Cycle"" red" & @CRLF & _
+"""Medium Cycle""" & @CRLF & _
+"""Large Cycle""" & @CRLF & _
 """Golden Cycle"" red" & @CRLF & _
 "" & @CRLF & _
-"#MISC---------------------------------" & @CRLF & _
+"#REAGENTS----------------------------" & @CRLF & _
 """Emblem""" & @CRLF & _
 """Enchanting""" & @CRLF & _
-"""Wings""" & @CRLF & _
 """Occult Effigy""" & @CRLF & _
 """Mystic Dye""" & @CRLF & _
 """Treasure""" & @CRLF & _
@@ -32,39 +31,32 @@ global const $g_sNotifyTextDefault = "hide ""^Gold$""" & @CRLF & _
 """Book of Cain""" & @CRLF & _
 """Positronic Brain""" & @CRLF & _
 """Reagent\|!(Pos)""" & @CRLF & _
-"""Reality Piercer""" & @CRLF & _
-"""Ghost Trance""" & @CRLF & _
-"""Relic"" red" & @CRLF & _
 "" & @CRLF & _
+"#QUEST ITEMS--------------------------" & @CRLF & _
 """Ring of the Five""" & @CRLF & _
-"""Signet of Skill""" & @CRLF & _
-"""Tome of Possession""" & @CRLF & _
 """Sigil$""" & @CRLF & _
-"""Dimensional Link""" & @CRLF & _
-"""Key of Lies""" & @CRLF & _
-"""Key of Sin""" & @CRLF & _
-"""Askari Call""" & @CRLF & _
+"""Tome of Possession""" & @CRLF & _
 """Tenet""" & @CRLF & _
 """Riftstone"" red" & @CRLF & _
-"""Fragment"" red" & @CRLF & _
-"""Star Chart"" red" & @CRLF & _
-"""Otherworldly Link""" & @CRLF & _
-"""Damned""" & @CRLF & _
+"""Quest\|""" & @CRLF & _
+"" & @CRLF & _
+"#MISC---------------------------------" & @CRLF & _
+"""Wings""" & @CRLF & _
+"""Pulsating Worldstone Shard""" & @CRLF & _
 """Angel Bag""" & @CRLF & _
 """Sunless Crystal Bird""" & @CRLF & _
-"""Pulsating Worldstone Shard""" & @CRLF & _
-"""Heavenly Soul"" red" & @CRLF & _
+"""Reality Piercer""" & @CRLF & _
+"""Ghost Trance""" & @CRLF & _
 "show ""Horadric Cube""" & @CRLF & _
-"show ""^Sunstone of""" & @CRLF & _
 """^Scroll""" & @CRLF & _
 "" & @CRLF & _
-"#EQUIPMENT-----------------------------" & @CRLF & _
+"#EQUIPMENT----------------------------" & @CRLF & _
 "sacred eth superior" & @CRLF & _
 "sacred eth superior rare" & @CRLF & _
 "1 2 3 4 unique" & @CRLF & _
-"sacred unique name" & @CRLF & _
-"set name" & @CRLF & _
-"""Ring$|Amulet$|Jewel|Quiver"" unique name" & @CRLF & _
+"sacred unique" & @CRLF & _
+"set" & @CRLF & _
+"""Ring$|Amulet$|Jewel|Quiver"" unique" & @CRLF & _
 "master" & @CRLF & _
 "" & @CRLF & _
 """Jewel""" & @CRLF & _
@@ -74,14 +66,16 @@ global const $g_sNotifyTextDefault = "hide ""^Gold$""" & @CRLF & _
 """Ring$"" rare {Skills}" & @CRLF & _
 "" & @CRLF & _
 "#CONSUMABLES----------------------------" & @CRLF & _
-"""Orb\|""" & @CRLF & _
+"""Mystic Orb""" & @CRLF & _
 """Shrine \(10"" orange" & @CRLF & _
 """Vessel"" orange" & @CRLF & _
 """Oil of (Conjuration|Augmentation|Greater Luck|Intensity)""" & @CRLF & _
 """Arcane (Shard|Crystal|Cluster)""" & @CRLF & _
 """Corrupted (Shard|Crystal|Cluster)""" & @CRLF & _
+"""Heavenly|Crate""" & @CRLF & _
 """Belladonna""" & @CRLF & _
-"""Trophy"" red sound1" & @CRLF & _
+"""Trophy"" red" & @CRLF & _
+"""Relic"" red" & @CRLF & _
 """Signet of Learning""" & @CRLF & _
 """Large Signet of Learning"" green" & @CRLF & _
 """Greater Signet""" & @CRLF & _
