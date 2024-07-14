@@ -795,7 +795,7 @@ func NotifierFlagRef($sFlag, ByRef $iFlag, ByRef $iGroup)
 		for $j = 0 to UBound($g_asNotifyFlags, $UBOUND_COLUMNS) - 1
 			if ($g_asNotifyFlags[$i][$j] == "") then
 				exitloop
-			elseif ($g_asNotifyFlags[$i][$j] == $sFlag) then
+			elseif (StringLower($g_asNotifyFlags[$i][$j]) == StringLower($sFlag)) then
 				$iGroup = $i
 				$iFlag = $j
 				return 1
