@@ -436,7 +436,7 @@ func CompareStats()
 	;Compare stats
 	local $statDiffCount = 0
 	local $g_statDiff[0][5]
-	for $i = 0 To 1023	
+	for $i = 0 To $g_iNumStats - 1	
 		if ($g_aiStatsCacheCopy[0][$i] <> $g_aiStatsCache[0][$i]) then
 			_ArrayAdd($g_statDiff,$i&"|"&$g_d2StatNames[$i][0]&"|"&$g_aiStatsCacheCopy[0][$i]&"|"&$g_aiStatsCache[0][$i]&"|"&$g_aiStatsCache[0][$i]-$g_aiStatsCacheCopy[0][$i])
 			$statDiffCount += 1
@@ -795,7 +795,7 @@ func NotifierFlagRef($sFlag, ByRef $iFlag, ByRef $iGroup)
 		for $j = 0 to UBound($g_asNotifyFlags, $UBOUND_COLUMNS) - 1
 			if ($g_asNotifyFlags[$i][$j] == "") then
 				exitloop
-			elseif ($g_asNotifyFlags[$i][$j] == $sFlag) then
+			elseif (StringLower($g_asNotifyFlags[$i][$j]) == StringLower($sFlag)) then
 				$iGroup = $i
 				$iFlag = $j
 				return 1
