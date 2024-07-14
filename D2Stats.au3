@@ -928,7 +928,7 @@ func NotifierHelp($sInput)
 			$sName = $g_avNotifyCache[$i][0]
 			$iTierFlag = $g_avNotifyCache[$i][1]
 
-			if (StringRegExp($sName, $sMatch)) then
+			if (StringRegExp(StringLower($sName), StringLower($sMatch))) then
 				if ($iFlagsTier and not BitAND($iFlagsTier, $iTierFlag)) then continueloop
 
 				$asMatches[$iCount][0] = $sName
@@ -1012,7 +1012,7 @@ func NotifierMain()
 
 				; Match with notifier rules
 				for $j = 0 to UBound($g_avNotifyCompile) - 1
-					if (StringRegExp($sType, $g_avNotifyCompile[$j][$eNotifyFlagsMatch])) then
+					if (StringRegExp(StringLower($sType), StringLower($g_avNotifyCompile[$j][$eNotifyFlagsMatch]))) then
 		                _WinAPI_ReadProcessMemory($g_ahD2Handle[1], $pUniqueItemsTxt + ($iFileIndex * 0x14c), DllStructGetPtr($tUniqueItemsTxt), DllStructGetSize($tUniqueItemsTxt), 0)
 		                local $iLvl = DllStructGetData($tUniqueItemsTxt, "wLvl")
 
@@ -1067,7 +1067,7 @@ func NotifierMain()
 
 						; Forming an array of notifications to add to the pool
                         local $aOnGroundItem[1][4] = [[$sType, $oItemFlags]]
-
+						
                         _ArrayAdd($aOnGroundDisplayPool, $aOnGroundItem)
 					endif
 				next
@@ -1392,7 +1392,7 @@ func HighlightStats($sGetItemStats, $asStatGroups, byref $bIsMatchByStats)
                 continueloop
             endif
 
-            if (StringRegExp($sStat, $asStatGroups[$i])) then
+            if (StringRegExp(StringLower($sStat), StringLower($asStatGroups[$i]))) then
                 $aColoredStats[$asStats[0] - $k][1] = $ePrintRed
                 $iMatchCounter += 1
             endif
@@ -1921,7 +1921,6 @@ func OnClick_Forum()
 endfunc
 
 func CreateGUI()
-	;global $g_iGroupLines = 16
 	global $g_iGroupWidth = 110
 	global $g_iGroupXStart = 8
 	global $g_iGUIWidth = 32 + 4*$g_iGroupWidth
@@ -2285,7 +2284,7 @@ Func WM_COMMAND($hWnd, $iMsg, $wParam, $lParam)
 				OnChange_NotifyEdit()
 		EndSwitch
 	EndIf
-EndFunc   ;==>WM_COMMAND
+EndFunc
 
 Func _GetDPI()
     Local $avRet[3]
@@ -2314,7 +2313,7 @@ Func _GetDPI()
     $avRet[2] = $iDPIRat
 
     Return $avRet
-EndFunc   ;==>_GetDPI
+EndFunc
 
 Func GoblinAlert($id)
 	If CheckGoblinHaveSeenBefore($id) Then
