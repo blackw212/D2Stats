@@ -1917,7 +1917,7 @@ func OnClick_VolumeTest()
 endfunc
 
 func OnClick_Forum()
-	ShellExecute("https://forum.median-xl.com/viewtopic.php?f=4&t=3702")
+	ShellExecute("https://forum.median-xl.com/viewtopic.php?f=4&t=83520")
 endfunc
 
 func CreateGUI()
