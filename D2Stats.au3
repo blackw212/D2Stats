@@ -87,7 +87,7 @@ func DefineGlobals()
 		[ "low", "normal", "superior", "magic", "set", "rare", "unique", "craft", "honor" ], _
 		[ "eth", "socket" ], _
 		[], _
-		[ "clr_none", "white", "red", "lime", "blue", "gold", "grey", "black", "clr_unk", "orange", "yellow", "green", "purple", "show", "hide" ], _
+		[ "clr_none", "white", "red", "lime", "blue", "gold", "grey", "black", "clr_unk", "orange", "yellow", "green", "purple" ], _
 		[ "sound_none" ], _
 		[ "name" ], _
 		[ "stat" ] _
@@ -122,12 +122,11 @@ func DefineGlobals()
 	global $g_pD2sgpt, $g_pD2InjectPrint, $g_pD2InjectString, $g_pD2InjectParams, $g_pD2InjectGetString, $g_pD2Client_GetItemName, $g_pD2Client_GetItemStat, $g_pD2Common_GetUnitStat
 
 	global $g_bHotkeysEnabled = False
-	global $g_ShowItems = False
 	global $g_hTimerCopyName = 0
 	global $g_sCopyName = ""
 
 	global const $g_iGUIOptionsGeneral = 10
-	global const $g_iGUIOptionsHotkey = 5
+	global const $g_iGUIOptionsHotkey = 4
 
 	global $g_avGUIOptionList[][5] = [ _
 		["nopickup", 0, "cb", "Automatically enable /nopickup"], _
@@ -143,7 +142,6 @@ func DefineGlobals()
 		["copy", 0x002D, "hk", "Copy item text", "HotKey_CopyItem"], _
 		["copy-name", 0, "cb", "Only copy item name"], _
 		["filter", 0x0124, "hk", "Inject/eject DropFilter", "HotKey_DropFilter"], _
-		["toggle", 0x0024, "hk", "Always show items", "HotKey_ToggleShowItems"], _
 		["readstats", 0x0000, "hk", "Read stats without tabbing out of the game", "HotKey_ReadStats"], _
 		["notify-text", $g_sNotifyTextDefault, "tx"], _
 		["selectedNotifierRulesName", "Default", "tx"] _
@@ -185,11 +183,6 @@ func Main()
 				endif
 
 				if (_GUI_Option("mousefix") <> IsMouseFixEnabled()) then ToggleMouseFix()
-
-				; Keep showing items if they don't
-				if ($g_ShowItems) then
-					FixShowItemsOnEsc()
-				endif
 
 				if (_GUI_Option("nopickup") and not $bIsIngame) then _MemoryWrite($g_hD2Client + 0x11C2F0, $g_ahD2Handle, 1, "byte")
 
@@ -393,34 +386,6 @@ func HotKey_DropFilter($TEST = False)
 		else
 			_Debug("HotKey_DropFilter", "Failed to inject DropFilter.")
 		endif
-	endif
-endfunc
-
-func HotKey_ToggleShowItems($TEST = False)
-	if ($TEST or not IsIngame()) then return
-	if(not $g_ShowItems) then
-		PrintString("Always show items.", $ePrintBlue)
-		$g_ShowItems = True
-		; Show items
-		_MemoryWrite($g_hD2Client + 0xFADB4, $g_ahD2Handle, 1)
-
-		; Enable objects interaction
-		local $sWrite = "0x90909090909090909090"
-		_MemoryWrite($g_hD2Client + 0x594A1, $g_ahD2Handle, $sWrite, "byte[10]")
-	else
-		PrintString("Hold to show items.", $ePrintBlue)
-		$g_ShowItems = False
-		_MemoryWrite($g_hD2Client + 0xFADB4, $g_ahD2Handle, 0)
-
-		local $sWrite = "0xC705" & SwapEndian($g_hD2Client + 0x11C2F4) & "00000000"
-		_MemoryWrite($g_hD2Client + 0x594A1, $g_ahD2Handle, $sWrite, "byte[10]")
-	endif
-endfunc
-
-func FixShowItemsOnEsc()
-	if(_MemoryRead($g_hD2Client + 0xFADB4, $g_ahD2Handle) == 0) then
-		Sleep(500)
-		_MemoryWrite($g_hD2Client + 0xFADB4, $g_ahD2Handle, 1)
 	endif
 endfunc
 
@@ -1137,7 +1102,7 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 	select
         case $bDisplayNotification
 			; Return pool of notifications if at least one rule without "show" or "hide" flags present
-		    return $asPreNotificationsPool
+	return $asPreNotificationsPool
 
         case $bShowOnGround
 			DisplayItemOnGround($pUnitData, true)
@@ -1750,23 +1715,16 @@ func OnClick_NotifyHelp()
 		'> eth - Item must be ethereal.', _
 		'> white red lime blue gold orange yellow green purple - Notification color.', _
 		StringFormat('> sound[1-%s] - Notification sound.', $g_iNumSounds), _
-		'> hide - Hides matching items on ground, without notification. Requires DropFilter.dll', _
 		'', _
 		'Example:', _
 		'"Battle" sacred unique eth sound3', _
 		'This would notify for ethereal SU Battle Axe, Battle Staff,', _
 		'Short Battle Bow and Long Battle Bow, and would play Sound 3', _
 		'', _
-        'Example 2:', _
-        'hide rare', _
-        '"Leather Gloves" sacred rare', _
-        'This would hide every rare on ground, except sacred rare Leather Gloves', _
-        '', _
         'Example 3:', _
-        'hide "Amulet$" normal rare magic', _
+        '"Amulet$" normal rare magic', _
         '"Amulet$" rare {[3-5] to All Skills}', _
-        'This would hide every normal, rare, magic amulet on ground, except', _
-        'rare amulets with 3-5 to All skills', _
+        'This would match ever rare amulet with 3-5 to All skills', _
 		'', _
         'Example 4:', _
         '"Amulet$" {[3-5] to All Skills} {Spell Focus} {to Spell Damage}', _
