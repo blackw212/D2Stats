@@ -6,7 +6,7 @@ global const $g_sNotifyTextDefault = "#SOCKETABLES-------------------------" & @
 """Enchanted Rune"" red" & @CRLF & _
 "" & @CRLF & _
 """(Amethyst|Topaz|Sapphire|Emerald|Ruby|Diamond|Skull|Onyx|Bloodstone|Turquoise|Amber|Rainbow Stone)""" & @CRLF & _
-"show ""^Perfect"" purple" & @CRLF & _
+"""^Perfect"" purple" & @CRLF & _
 "" & @CRLF & _
 "#CYCLE-------------------------------" & @CRLF & _
 """Cycle""" & @CRLF & _
@@ -40,7 +40,6 @@ global const $g_sNotifyTextDefault = "#SOCKETABLES-------------------------" & @
 """Sunless Crystal Bird""" & @CRLF & _
 """Reality Piercer""" & @CRLF & _
 """Ghost Trance""" & @CRLF & _
-"show ""Horadric Cube""" & @CRLF & _
 """^Scroll""" & @CRLF & _
 "" & @CRLF & _
 "#EQUIPMENT----------------------------" & @CRLF & _
@@ -70,9 +69,6 @@ global const $g_sNotifyTextDefault = "#SOCKETABLES-------------------------" & @
 """Large Signet of Learning"" green" & @CRLF & _
 """Greater Signet""" & @CRLF & _
 """Greater Signet of Learning"" red" & @CRLF & _
-"" & @CRLF & _
-"show ""Apple""" & @CRLF & _
-"show ""Healing Potion""" & @CRLF & _
 "" & @CRLF & _
 "#CHARMS----------------------------" & @CRLF & _
 """Visions of Akarat|Zakarum's Ear|Bone Chimes|Spirit Trance Herb|Soul of Kabraxis|Fool's Gold"" green stat" & @CRLF & _
