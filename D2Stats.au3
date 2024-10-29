@@ -898,7 +898,7 @@ func NotifierMain()
 
 	local $pPath, $pUnit, $pUnitData, $pCurrentUnit
 	local $iUnitType, $iClass, $iUnitId, $iQuality, $iFileIndex, $iEarLevel, $iFlags, $iTierFlag
-	local $bIsNewItem, $bIsEthereal
+	local $bIsEthereal
 	local $iFlagsTier, $iFlagsQuality, $iFlagsMisc, $iFlagsColour, $iFlagsSound, $iFlagsDisplayName, $iFlagsDisplayStat
 	local $sType, $sText
 
@@ -945,7 +945,6 @@ func NotifierMain()
 				; We are showing items on ground by default
 				DisplayItemOnGround($pUnitData, true)
 				
-				$bIsNewItem = BitAND(0x2000, $iFlags) <> 0
 				$bIsEthereal = BitAND(0x400000, $iFlags) <> 0
 
 				$sType = $g_avNotifyCache[$iClass][0]
@@ -1685,10 +1684,14 @@ func OnClick_NotifyHelp()
 		'> white red lime blue gold orange yellow green purple - Notification color.', _
 		StringFormat('> sound[1-%s] - Notification sound.', $g_iNumSounds), _
 		'', _
-		'Example:', _
+		'Example 1:', _
 		'"Battle" sacred unique eth sound3', _
 		'This would notify for ethereal SU Battle Axe, Battle Staff,', _
 		'Short Battle Bow and Long Battle Bow, and would play Sound 3', _
+		'', _
+		'Example 2:', _
+        'sacred {socketed \([0,6]\)}', _
+        'This would match ever sacred item with 0 or 6 Sockets', _
 		'', _
         'Example 3:', _
         '"Amulet$" normal rare magic', _
