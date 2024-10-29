@@ -85,7 +85,7 @@ func DefineGlobals()
 	global $g_asNotifyFlags[$eNotifyFlagsLast][32] = [ _
 		[ "0", "1", "2", "3", "4", "sacred", "angelic", "master" ], _
 		[ "low", "normal", "superior", "magic", "set", "rare", "unique", "craft", "honor" ], _
-		[ "eth", "socket" ], _
+		[ "eth" ], _
 		[], _
 		[ "clr_none", "white", "red", "lime", "blue", "gold", "grey", "black", "clr_unk", "orange", "yellow", "green", "purple" ], _
 		[ "sound_none" ], _
@@ -126,7 +126,7 @@ func DefineGlobals()
 	global $g_sCopyName = ""
 
 	global const $g_iGUIOptionsGeneral = 10
-	global const $g_iGUIOptionsHotkey = 4
+	global const $g_iGUIOptionsHotkey = 3
 
 	global $g_avGUIOptionList[][5] = [ _
 		["nopickup", 0, "cb", "Automatically enable /nopickup"], _
@@ -141,7 +141,6 @@ func DefineGlobals()
 		["use-wav", 0, "cb", "Use .wav instead of .mp3 for sounds (For Linux Compatibility)"], _
 		["copy", 0x002D, "hk", "Copy item text", "HotKey_CopyItem"], _
 		["copy-name", 0, "cb", "Only copy item name"], _
-		["filter", 0x0124, "hk", "Inject/eject DropFilter", "HotKey_DropFilter"], _
 		["readstats", 0x0000, "hk", "Read stats without tabbing out of the game", "HotKey_ReadStats"], _
 		["notify-text", $g_sNotifyTextDefault, "tx"], _
 		["selectedNotifierRulesName", "Default", "tx"] _
@@ -365,28 +364,6 @@ func HotKey_CopyItem($TEST = False)
 
 	ClipPut($sOutput)
 	PrintString("Item text copied.")
-endfunc
-
-func HotKey_DropFilter($TEST = False)
-	if ($TEST or not IsIngame()) then return
-
-	local $hDropFilter = GetDropFilterHandle()
-
-	if ($hDropFilter) then
-		if (EjectDropFilter($hDropFilter)) then
-			PrintString("Ejected DropFilter.", $ePrintRed)
-			_Log("HotKey_DropFilter", "Ejected DropFilter.")
-		else
-			_Debug("HotKey_DropFilter", "Failed to eject DropFilter.")
-		endif
-	else
-		if (InjectDropFilter()) then
-			PrintString("Injected DropFilter.", $ePrintGreen)
-			_Log("HotKey_DropFilter", "Injected DropFilter.")
-		else
-			_Debug("HotKey_DropFilter", "Failed to inject DropFilter.")
-		endif
-	endif
 endfunc
 
 func HotKey_ReadStats()
@@ -921,7 +898,7 @@ func NotifierMain()
 
 	local $pPath, $pUnit, $pUnitData, $pCurrentUnit
 	local $iUnitType, $iClass, $iUnitId, $iQuality, $iFileIndex, $iEarLevel, $iFlags, $iTierFlag
-	local $bIsNewItem, $bIsSocketed, $bIsEthereal
+	local $bIsNewItem, $bIsEthereal
 	local $iFlagsTier, $iFlagsQuality, $iFlagsMisc, $iFlagsColour, $iFlagsSound, $iFlagsDisplayName, $iFlagsDisplayStat
 	local $sType, $sText
 
@@ -969,7 +946,6 @@ func NotifierMain()
 				DisplayItemOnGround($pUnitData, true)
 				
 				$bIsNewItem = BitAND(0x2000, $iFlags) <> 0
-				$bIsSocketed = BitAND(0x800, $iFlags) <> 0
 				$bIsEthereal = BitAND(0x400000, $iFlags) <> 0
 
 				$sType = $g_avNotifyCache[$iClass][0]
@@ -1005,7 +981,6 @@ func NotifierMain()
 
 						if ($iFlagsTier and not BitAND($iFlagsTier, $iTierFlag)) then continueloop
 						if ($iFlagsQuality and not BitAND($iFlagsQuality, BitRotate(1, $iQuality - 1, "D"))) then continueloop
-						if (not $bIsSocketed and BitAND($iFlagsMisc, NotifierFlag("socket"))) then continueloop
 						if (not $bIsEthereal and BitAND($iFlagsMisc, NotifierFlag("eth"))) then continueloop
 
 						; Flags are added to the object because I don't know a more
@@ -1091,9 +1066,8 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 			$bHideCompletely = True
 		else
 			if (not $bStatGroupsExists) then $bDisplayNotification = True
-            _ArrayAdd($asPreNotificationsPool, $aNotification)
+			_ArrayAdd($asPreNotificationsPool, $aNotification)
 		endif
-
 	next
 
 	; Clean "on ground" pool after items on ground display processing
@@ -1102,7 +1076,7 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 	select
         case $bDisplayNotification
 			; Return pool of notifications if at least one rule without "show" or "hide" flags present
-	return $asPreNotificationsPool
+			return $asPreNotificationsPool
 
         case $bShowOnGround
 			DisplayItemOnGround($pUnitData, true)
@@ -1156,7 +1130,10 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
         ; to display as notifications per line
         if (UBound($asStatGroups) or $bDisplayItemStats) then
 			local $sGetItemStats = GetItemStats($pCurrentUnit)
-            $asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
+			local $iSocketCount = GetUnitStat($oFlags.item('$pCurrentUnit'), 0xC2)
+
+			$sGetItemStats = "Socketed (" & $iSocketCount & ")" & @CRLF & $sGetItemStats
+			$asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
             $oFlags.add('$bIsMatchByStats', $bIsMatchByStats)
         endif
 		
@@ -1267,14 +1244,6 @@ func DisplayNotification(byref $asNotificationsPool)
 					endif
 				else
 					PrintString("  " & $asStats[$n][0], $asStats[$n][1])
-				endif
-			endif
-
-			if($n == UBound($asStats) - 1 and $iQuality > 0 and $iQuality < 5) then
-				local $iSockets = GetUnitStat($pCurrentUnit, 0xC2)
-
-				if($iSockets > 0) then
-					PrintString("  " & "Socketed (" & $iSockets & ")", $asStats[$n][1])
 				endif
 			endif
         next
@@ -2383,85 +2352,6 @@ func WriteWString($sString)
 
 	return True
 endfunc
-
-func GetDropFilterHandle()
-	if (not WriteString("DropFilter.dll")) then return _Debug("GetDropFilterHandle", "Failed to write string.")
-
-	local $pGetModuleHandleA = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "GetModuleHandleA")
-	if (not $pGetModuleHandleA) then return _Debug("GetDropFilterHandle", "Couldn't retrieve GetModuleHandleA address.")
-
-	return RemoteThread($pGetModuleHandleA, $g_pD2InjectString)
-endfunc
-
-#cs
-D2Client.dll+5907E - 83 3E 04              - cmp dword ptr [esi],04 { 4 }
-D2Client.dll+59081 - 0F85
--->
-D2Client.dll+5907E - E9 *           - jmp DropFilter.dll+15D0 { PATCH_DropFilter }
-#ce
-
-func InjectDropFilter()
-	local $sPath = FileGetLongName("DropFilter.dll", $FN_RELATIVEPATH)
-	if (not FileExists($sPath)) then return _Debug("InjectDropFilter", "Couldn't find DropFilter.dll. Make sure it's in the same folder as " & @ScriptName & ".")
-	if (not WriteString($sPath)) then return _Debug("InjectDropFilter", "Failed to write DropFilter.dll path.")
-
-	local $pLoadLibraryA = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "LoadLibraryA")
-	if (not $pLoadLibraryA) then return _Debug("InjectDropFilter", "Couldn't retrieve LoadLibraryA address.")
-
-	local $iRet = RemoteThread($pLoadLibraryA, $g_pD2InjectString)
-	if (@error) then return _Debug("InjectDropFilter", "Failed to create remote thread.")
-
-	local $bInjected = 233 <> _MemoryRead($g_hD2Client + 0x5907E, $g_ahD2Handle, "byte")
-
-	; TODO: Check if this is still needed
-	if ($iRet and $bInjected) then
-		local $hDropFilter = _WinAPI_LoadLibrary("DropFilter.dll")
-		if ($hDropFilter) then
-			local $pEntryAddress = _WinAPI_GetProcAddress($hDropFilter, "_PATCH_DropFilter@0")
-			if ($pEntryAddress) then
-				local $pJumpAddress = $pEntryAddress - 0x5 - ($g_hD2Client + 0x5907E)
-				_MemoryWrite($g_hD2Client + 0x5907E, $g_ahD2Handle, "0xE9" & SwapEndian($pJumpAddress), "byte[5]")
-			else
-				_Debug("InjectDropFilter", "Couldn't find DropFilter.dll entry point.")
-				$iRet = 0
-			endif
-			_WinAPI_FreeLibrary($hDropFilter)
-		else
-			_Debug("InjectDropFilter", "Failed to load DropFilter.dll.")
-			$iRet = 0
-		endif
-	endif
-
-	return $iRet
-endfunc
-
-func EjectDropFilter($hDropFilter)
-	local $pFreeLibrary = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "FreeLibrary")
-	if (not $pFreeLibrary) then return _Debug("EjectDropFilter", "Couldn't retrieve FreeLibrary address.")
-
-	local $iRet = RemoteThread($pFreeLibrary, $hDropFilter)
-	if (@error) then return _Debug("EjectDropFilter", "Failed to create remote thread.")
-
-	if ($iRet) then _MemoryWrite($g_hD2Client + 0x5907E, $g_ahD2Handle, "0x833E040F85", "byte[5]")
-
-	return $iRet
-endfunc
-
-#cs
-D2Client.dll+42AE1 - A3 *                  - mov [D2Client.dll+11C3DC],eax { [00000000] }
-D2Client.dll+42AE6 - A3 *                  - mov [D2Client.dll+11C3E0],eax { [00000000] }
-->
-D2Client.dll+42AE1 - 90                    - nop
-D2Client.dll+42AE2 - 90                    - nop
-D2Client.dll+42AE3 - 90                    - nop
-D2Client.dll+42AE4 - 90                    - nop
-D2Client.dll+42AE5 - 90                    - nop
-D2Client.dll+42AE6 - 90                    - nop
-D2Client.dll+42AE7 - 90                    - nop
-D2Client.dll+42AE8 - 90                    - nop
-D2Client.dll+42AE9 - 90                    - nop
-D2Client.dll+42AEA - 90                    - nop
-#ce
 
 func IsMouseFixEnabled()
 	return _MemoryRead($g_hD2Client + 0x42AE1, $g_ahD2Handle, "byte") == 0x90
