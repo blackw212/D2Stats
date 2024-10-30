@@ -1126,8 +1126,9 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
         if (UBound($asStatGroups) or $bDisplayItemStats) then
 			local $sGetItemStats = GetItemStats($pCurrentUnit)
 			local $iSocketCount = GetUnitStat($oFlags.item('$pCurrentUnit'), 0xC2)
-
-			$sGetItemStats = "Socketed (" & $iSocketCount & ")" & @CRLF & $sGetItemStats
+			if $iQuality > 0 and $iQuality < 5 then
+				$sGetItemStats = "Socketed (" & $iSocketCount & ")" & @CRLF & $sGetItemStats
+			endif
 			$asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
             $oFlags.add('$bIsMatchByStats', $bIsMatchByStats)
         endif
