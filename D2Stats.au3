@@ -125,12 +125,11 @@ func DefineGlobals()
 	global $g_hTimerCopyName = 0
 	global $g_sCopyName = ""
 
-	global const $g_iGUIOptionsGeneral = 10
+	global const $g_iGUIOptionsGeneral = 9
 	global const $g_iGUIOptionsHotkey = 3
 
 	global $g_avGUIOptionList[][5] = [ _
 		["nopickup", 0, "cb", "Automatically enable /nopickup"], _
-		["mousefix", 0, "cb", "Continue attacking when monster dies under cursor"], _
 		["goblin-alert", 1, "cb", "Play sound (sound 6) when goblins are nearby."], _
 		["unique-tier", 1, "cb", "Show sacred tier of unique (SU/SSU/SSSU)"], _
 		["notify-enabled", 1, "cb", "Enable notifier"], _
@@ -174,14 +173,11 @@ func Main()
 			UpdateGUIOptions()
 
 			if (IsIngame()) then
-
 				; why inject every frame if we can just inject once?
 				if (not $bIsIngame) then 
 					$g_bNotifyCache = True
 					InjectFunctions()
 				endif
-
-				if (_GUI_Option("mousefix") <> IsMouseFixEnabled()) then ToggleMouseFix()
 
 				if (_GUI_Option("nopickup") and not $bIsIngame) then _MemoryWrite($g_hD2Client + 0x11C2F0, $g_ahD2Handle, 1, "byte")
 
@@ -911,7 +907,7 @@ func NotifierMain()
 	local $aOnGroundDisplayPool[0][4]
 
 	for $i = 0 to $iPaths - 1
-		$pPath = _MemoryRead($pPaths + 4*$i, $g_ahD2Handle)
+		$pPath = _MemoryRead($pPaths + 4 * $i, $g_ahD2Handle)
 		$pUnit = _MemoryRead($pPath + 0x74, $g_ahD2Handle)
 
 		; while object observable
@@ -1223,6 +1219,8 @@ func DisplayNotification(byref $asNotificationsPool)
 	local $pCurrentUnit = $oFlags.item('$pCurrentUnit')
 	local $iQuality = $oFlags.item('$iQuality')
 
+	if ($iFlagsSound <> NotifierFlag("sound_none")) then NotifierPlaySound($iFlagsSound)
+
 	; Display item name
 	if (UBound($asName)) then
 		PrintString($asName[0], $asName[1])
@@ -1249,8 +1247,6 @@ func DisplayNotification(byref $asNotificationsPool)
 	endif
 
 	if(_GUI_Option("debug-notifier")) then PrintString('rule - ' & $sMatchingLine, $ePrintRed)
-
-    if ($iFlagsSound <> NotifierFlag("sound_none")) then NotifierPlaySound($iFlagsSound)
 endfunc
 
 ; To display only one notification we need to narrow notifications
@@ -1853,8 +1849,8 @@ endfunc
 func CreateGUI()
 	global $g_iGroupWidth = 110
 	global $g_iGroupXStart = 8
-	global $g_iGUIWidth = 32 + 4*$g_iGroupWidth
-	global $g_iGUIHeight = 350
+	global $g_iGUIWidth = 32 + 4 * $g_iGroupWidth
+	global $g_iGUIHeight = 300
 
 	local $sTitle = not @Compiled ? "Test" : StringFormat("D2Stats %s - [%s]", FileGetVersion(@AutoItExe, "FileVersion"), FileGetVersion(@AutoItExe, "Comments"))
 
@@ -1876,12 +1872,6 @@ func CreateGUI()
 	global $g_idTab = GUICtrlCreateTab(0, 0, $g_iGUIWidth, 0, $TCS_FOCUSNEVER)
 	GUICtrlSetResizing (-1, $GUI_DOCKMENUBAR)
 	GUICtrlSetOnEvent(-1, "OnClick_Tab")
-
-	local $idDummySelectAll = GUICtrlCreateDummy()
-	GUICtrlSetOnEvent(-1, "DummySelectAll")
-
-	local $avAccelKeys[][2] = [ ["^a", $idDummySelectAll] ]
-	GUISetAccelerators($avAccelKeys)
 
 #Region Stats
 	GUICtrlCreateTabItem("Basic")
@@ -2047,6 +2037,10 @@ func CreateGUI()
 	
 	global $g_idNotifySave = GUICtrlCreateButton("Save", 4 + 0*62, $iBottomButtonCoords, 60, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_NotifySave")
+	; Add Ctrl + S as hotkey for saving notifier
+	local $avAccelKeys[][2] = [ ["^s", $g_idNotifySave] ]
+	GUISetAccelerators($avAccelKeys)
+
 	global $g_idNotifyReset = GUICtrlCreateButton("Reset", 4 + 1*62, $iBottomButtonCoords, 60, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_NotifyReset")
 	global $g_idNotifyTest = GUICtrlCreateButton("Help", 4 + 2*62, $iBottomButtonCoords, 60, 25)
@@ -2196,12 +2190,6 @@ func LoadGUIVolume()
 			if ($iIndex < $g_iNumSounds) then _GUI_Volume($iIndex, $iValue)
 		next
 	endif
-endfunc
-
-func DummySelectAll()
-    local $hWnd = _WinAPI_GetFocus()
-    local $sClass = _WinAPI_GetClassName($hWnd)
-    if ($sClass == "Edit") then _GUICtrlEdit_SetSel($hWnd, 0, -1)
 endfunc
 
 Func WM_COMMAND($hWnd, $iMsg, $wParam, $lParam)
@@ -2354,15 +2342,6 @@ func WriteWString($sString)
 	if (@error) then return _Log("WriteWString", "Failed to write string.")
 
 	return True
-endfunc
-
-func IsMouseFixEnabled()
-	return _MemoryRead($g_hD2Client + 0x42AE1, $g_ahD2Handle, "byte") == 0x90
-endfunc
-
-func ToggleMouseFix()
-	local $sWrite = IsMouseFixEnabled() ? "0xA3" & SwapEndian($g_hD2Client + 0x11C3DC) & "A3" & SwapEndian($g_hD2Client + 0x11C3E0) : "0x90909090909090909090"
-	_MemoryWrite($g_hD2Client + 0x42AE1, $g_ahD2Handle, $sWrite, "byte[10]")
 endfunc
 
 #cs
