@@ -168,7 +168,7 @@ func Main()
 
 		if (TimerDiff($hTimerUpdateDelay) > 250) then
 			$hTimerUpdateDelay = TimerInit()
-
+	
 			UpdateHandle()
 			UpdateGUIOptions()
 
@@ -389,7 +389,7 @@ func CompareStats()
 		_ArrayDisplay($g_statDiff, "Stat diff", default, 32, @LF, "Stat ID|Name|Old|New|Diff")
 	endif
 	
-	CopyStatsArray()
+	$g_aiStatsCacheCopy = $g_aiStatsCache
 endfunc
 #EndRegion
 
@@ -468,10 +468,6 @@ func UpdateStatValues()
 		local $iFactor = Floor((GetStatValue(278) * GetStatValue(0, 1) + GetStatValue(485) * GetStatValue(1, 1)) / 3e6 * 100)
 		$g_aiStatsCache[1][904] = $iFactor > 100 ? 100 : $iFactor
 	endif
-endfunc
-
-func CopyStatsArray()
-	$g_aiStatsCacheCopy = $g_aiStatsCache
 endfunc
 
 func GetUnitWeapon($pUnit)
@@ -1556,7 +1552,7 @@ endfunc
 func OnClick_ReadStats()
 	UpdateStatValues()
 	UpdateGUI()
-	CopyStatsArray()
+	$g_aiStatsCacheCopy = $g_aiStatsCache
 endfunc
 
 func OnClick_Tab()
