@@ -85,9 +85,9 @@ func DefineGlobals()
 	global $g_asNotifyFlags[$eNotifyFlagsLast][32] = [ _
 		[ "0", "1", "2", "3", "4", "sacred", "angelic", "master" ], _
 		[ "low", "normal", "superior", "magic", "set", "rare", "unique", "craft", "honor" ], _
-		[ "eth", "socket" ], _
+		[ "eth" ], _
 		[], _
-		[ "clr_none", "white", "red", "lime", "blue", "gold", "grey", "black", "clr_unk", "orange", "yellow", "green", "purple", "show", "hide" ], _
+		[ "clr_none", "white", "red", "lime", "blue", "gold", "grey", "black", "clr_unk", "orange", "yellow", "green", "purple" ], _
 		[ "sound_none" ], _
 		[ "name" ], _
 		[ "stat" ] _
@@ -122,16 +122,14 @@ func DefineGlobals()
 	global $g_pD2sgpt, $g_pD2InjectPrint, $g_pD2InjectString, $g_pD2InjectParams, $g_pD2InjectGetString, $g_pD2Client_GetItemName, $g_pD2Client_GetItemStat, $g_pD2Common_GetUnitStat
 
 	global $g_bHotkeysEnabled = False
-	global $g_ShowItems = False
 	global $g_hTimerCopyName = 0
 	global $g_sCopyName = ""
 
-	global const $g_iGUIOptionsGeneral = 10
-	global const $g_iGUIOptionsHotkey = 5
+	global const $g_iGUIOptionsGeneral = 9
+	global const $g_iGUIOptionsHotkey = 3
 
 	global $g_avGUIOptionList[][5] = [ _
 		["nopickup", 0, "cb", "Automatically enable /nopickup"], _
-		["mousefix", 0, "cb", "Continue attacking when monster dies under cursor"], _
 		["goblin-alert", 1, "cb", "Play sound (sound 6) when goblins are nearby."], _
 		["unique-tier", 1, "cb", "Show sacred tier of unique (SU/SSU/SSSU)"], _
 		["notify-enabled", 1, "cb", "Enable notifier"], _
@@ -142,8 +140,6 @@ func DefineGlobals()
 		["use-wav", 0, "cb", "Use .wav instead of .mp3 for sounds (For Linux Compatibility)"], _
 		["copy", 0x002D, "hk", "Copy item text", "HotKey_CopyItem"], _
 		["copy-name", 0, "cb", "Only copy item name"], _
-		["filter", 0x0124, "hk", "Inject/eject DropFilter", "HotKey_DropFilter"], _
-		["toggle", 0x0024, "hk", "Always show items", "HotKey_ToggleShowItems"], _
 		["readstats", 0x0000, "hk", "Read stats without tabbing out of the game", "HotKey_ReadStats"], _
 		["notify-text", $g_sNotifyTextDefault, "tx"], _
 		["selectedNotifierRulesName", "Default", "tx"] _
@@ -172,23 +168,15 @@ func Main()
 
 		if (TimerDiff($hTimerUpdateDelay) > 250) then
 			$hTimerUpdateDelay = TimerInit()
-
+	
 			UpdateHandle()
 			UpdateGUIOptions()
 
 			if (IsIngame()) then
-
 				; why inject every frame if we can just inject once?
 				if (not $bIsIngame) then 
 					$g_bNotifyCache = True
 					InjectFunctions()
-				endif
-
-				if (_GUI_Option("mousefix") <> IsMouseFixEnabled()) then ToggleMouseFix()
-
-				; Keep showing items if they don't
-				if ($g_ShowItems) then
-					FixShowItemsOnEsc()
 				endif
 
 				if (_GUI_Option("nopickup") and not $bIsIngame) then _MemoryWrite($g_hD2Client + 0x11C2F0, $g_ahD2Handle, 1, "byte")
@@ -374,56 +362,6 @@ func HotKey_CopyItem($TEST = False)
 	PrintString("Item text copied.")
 endfunc
 
-func HotKey_DropFilter($TEST = False)
-	if ($TEST or not IsIngame()) then return
-
-	local $hDropFilter = GetDropFilterHandle()
-
-	if ($hDropFilter) then
-		if (EjectDropFilter($hDropFilter)) then
-			PrintString("Ejected DropFilter.", $ePrintRed)
-			_Log("HotKey_DropFilter", "Ejected DropFilter.")
-		else
-			_Debug("HotKey_DropFilter", "Failed to eject DropFilter.")
-		endif
-	else
-		if (InjectDropFilter()) then
-			PrintString("Injected DropFilter.", $ePrintGreen)
-			_Log("HotKey_DropFilter", "Injected DropFilter.")
-		else
-			_Debug("HotKey_DropFilter", "Failed to inject DropFilter.")
-		endif
-	endif
-endfunc
-
-func HotKey_ToggleShowItems($TEST = False)
-	if ($TEST or not IsIngame()) then return
-	if(not $g_ShowItems) then
-		PrintString("Always show items.", $ePrintBlue)
-		$g_ShowItems = True
-		; Show items
-		_MemoryWrite($g_hD2Client + 0xFADB4, $g_ahD2Handle, 1)
-
-		; Enable objects interaction
-		local $sWrite = "0x90909090909090909090"
-		_MemoryWrite($g_hD2Client + 0x594A1, $g_ahD2Handle, $sWrite, "byte[10]")
-	else
-		PrintString("Hold to show items.", $ePrintBlue)
-		$g_ShowItems = False
-		_MemoryWrite($g_hD2Client + 0xFADB4, $g_ahD2Handle, 0)
-
-		local $sWrite = "0xC705" & SwapEndian($g_hD2Client + 0x11C2F4) & "00000000"
-		_MemoryWrite($g_hD2Client + 0x594A1, $g_ahD2Handle, $sWrite, "byte[10]")
-	endif
-endfunc
-
-func FixShowItemsOnEsc()
-	if(_MemoryRead($g_hD2Client + 0xFADB4, $g_ahD2Handle) == 0) then
-		Sleep(500)
-		_MemoryWrite($g_hD2Client + 0xFADB4, $g_ahD2Handle, 1)
-	endif
-endfunc
-
 func HotKey_ReadStats()
 	UpdateStatValues()
 	UpdateGUI()
@@ -451,7 +389,7 @@ func CompareStats()
 		_ArrayDisplay($g_statDiff, "Stat diff", default, 32, @LF, "Stat ID|Name|Old|New|Diff")
 	endif
 	
-	CopyStatsArray()
+	$g_aiStatsCacheCopy = $g_aiStatsCache
 endfunc
 #EndRegion
 
@@ -530,10 +468,6 @@ func UpdateStatValues()
 		local $iFactor = Floor((GetStatValue(278) * GetStatValue(0, 1) + GetStatValue(485) * GetStatValue(1, 1)) / 3e6 * 100)
 		$g_aiStatsCache[1][904] = $iFactor > 100 ? 100 : $iFactor
 	endif
-endfunc
-
-func CopyStatsArray()
-	$g_aiStatsCacheCopy = $g_aiStatsCache
 endfunc
 
 func GetUnitWeapon($pUnit)
@@ -956,7 +890,7 @@ func NotifierMain()
 
 	local $pPath, $pUnit, $pUnitData, $pCurrentUnit
 	local $iUnitType, $iClass, $iUnitId, $iQuality, $iFileIndex, $iEarLevel, $iFlags, $iTierFlag
-	local $bIsNewItem, $bIsSocketed, $bIsEthereal
+	local $bIsEthereal
 	local $iFlagsTier, $iFlagsQuality, $iFlagsMisc, $iFlagsColour, $iFlagsSound, $iFlagsDisplayName, $iFlagsDisplayStat
 	local $sType, $sText
 
@@ -969,7 +903,7 @@ func NotifierMain()
 	local $aOnGroundDisplayPool[0][4]
 
 	for $i = 0 to $iPaths - 1
-		$pPath = _MemoryRead($pPaths + 4*$i, $g_ahD2Handle)
+		$pPath = _MemoryRead($pPaths + 4 * $i, $g_ahD2Handle)
 		$pUnit = _MemoryRead($pPath + 0x74, $g_ahD2Handle)
 
 		; while object observable
@@ -1003,8 +937,6 @@ func NotifierMain()
 				; We are showing items on ground by default
 				DisplayItemOnGround($pUnitData, true)
 				
-				$bIsNewItem = BitAND(0x2000, $iFlags) <> 0
-				$bIsSocketed = BitAND(0x800, $iFlags) <> 0
 				$bIsEthereal = BitAND(0x400000, $iFlags) <> 0
 
 				$sType = $g_avNotifyCache[$iClass][0]
@@ -1040,7 +972,6 @@ func NotifierMain()
 
 						if ($iFlagsTier and not BitAND($iFlagsTier, $iTierFlag)) then continueloop
 						if ($iFlagsQuality and not BitAND($iFlagsQuality, BitRotate(1, $iQuality - 1, "D"))) then continueloop
-						if (not $bIsSocketed and BitAND($iFlagsMisc, NotifierFlag("socket"))) then continueloop
 						if (not $bIsEthereal and BitAND($iFlagsMisc, NotifierFlag("eth"))) then continueloop
 
 						; Flags are added to the object because I don't know a more
@@ -1126,9 +1057,8 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 			$bHideCompletely = True
 		else
 			if (not $bStatGroupsExists) then $bDisplayNotification = True
-            _ArrayAdd($asPreNotificationsPool, $aNotification)
+			_ArrayAdd($asPreNotificationsPool, $aNotification)
 		endif
-
 	next
 
 	; Clean "on ground" pool after items on ground display processing
@@ -1137,7 +1067,7 @@ func OnGroundFilterItems(byref $aOnGroundDisplayPool, byref $bDelayedHideItem)
 	select
         case $bDisplayNotification
 			; Return pool of notifications if at least one rule without "show" or "hide" flags present
-		    return $asPreNotificationsPool
+			return $asPreNotificationsPool
 
         case $bShowOnGround
 			DisplayItemOnGround($pUnitData, true)
@@ -1191,7 +1121,11 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
         ; to display as notifications per line
         if (UBound($asStatGroups) or $bDisplayItemStats) then
 			local $sGetItemStats = GetItemStats($pCurrentUnit)
-            $asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
+			local $iSocketCount = GetUnitStat($oFlags.item('$pCurrentUnit'), 0xC2)
+			if $iQuality > 0 and $iQuality < 5 then
+				$sGetItemStats = "Socketed (" & $iSocketCount & ")" & @CRLF & $sGetItemStats
+			endif
+			$asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
             $oFlags.add('$bIsMatchByStats', $bIsMatchByStats)
         endif
 		
@@ -1282,6 +1216,8 @@ func DisplayNotification(byref $asNotificationsPool)
 	local $pCurrentUnit = $oFlags.item('$pCurrentUnit')
 	local $iQuality = $oFlags.item('$iQuality')
 
+	if ($iFlagsSound <> NotifierFlag("sound_none")) then NotifierPlaySound($iFlagsSound)
+
 	; Display item name
 	if (UBound($asName)) then
 		PrintString($asName[0], $asName[1])
@@ -1304,20 +1240,10 @@ func DisplayNotification(byref $asNotificationsPool)
 					PrintString("  " & $asStats[$n][0], $asStats[$n][1])
 				endif
 			endif
-
-			if($n == UBound($asStats) - 1 and $iQuality > 0 and $iQuality < 5) then
-				local $iSockets = GetUnitStat($pCurrentUnit, 0xC2)
-
-				if($iSockets > 0) then
-					PrintString("  " & "Socketed (" & $iSockets & ")", $asStats[$n][1])
-				endif
-			endif
         next
 	endif
 
 	if(_GUI_Option("debug-notifier")) then PrintString('rule - ' & $sMatchingLine, $ePrintRed)
-
-    if ($iFlagsSound <> NotifierFlag("sound_none")) then NotifierPlaySound($iFlagsSound)
 endfunc
 
 ; To display only one notification we need to narrow notifications
@@ -1626,7 +1552,7 @@ endfunc
 func OnClick_ReadStats()
 	UpdateStatValues()
 	UpdateGUI()
-	CopyStatsArray()
+	$g_aiStatsCacheCopy = $g_aiStatsCache
 endfunc
 
 func OnClick_Tab()
@@ -1750,23 +1676,20 @@ func OnClick_NotifyHelp()
 		'> eth - Item must be ethereal.', _
 		'> white red lime blue gold orange yellow green purple - Notification color.', _
 		StringFormat('> sound[1-%s] - Notification sound.', $g_iNumSounds), _
-		'> hide - Hides matching items on ground, without notification. Requires DropFilter.dll', _
 		'', _
-		'Example:', _
+		'Example 1:', _
 		'"Battle" sacred unique eth sound3', _
 		'This would notify for ethereal SU Battle Axe, Battle Staff,', _
 		'Short Battle Bow and Long Battle Bow, and would play Sound 3', _
 		'', _
-        'Example 2:', _
-        'hide rare', _
-        '"Leather Gloves" sacred rare', _
-        'This would hide every rare on ground, except sacred rare Leather Gloves', _
-        '', _
+		'Example 2:', _
+        'sacred {socketed \([0,6]\)}', _
+        'This would match ever sacred item with 0 or 6 Sockets', _
+		'', _
         'Example 3:', _
-        'hide "Amulet$" normal rare magic', _
+        '"Amulet$" normal rare magic', _
         '"Amulet$" rare {[3-5] to All Skills}', _
-        'This would hide every normal, rare, magic amulet on ground, except', _
-        'rare amulets with 3-5 to All skills', _
+        'This would match ever rare amulet with 3-5 to All skills', _
 		'', _
         'Example 4:', _
         '"Amulet$" {[3-5] to All Skills} {Spell Focus} {to Spell Damage}', _
@@ -1923,8 +1846,8 @@ endfunc
 func CreateGUI()
 	global $g_iGroupWidth = 110
 	global $g_iGroupXStart = 8
-	global $g_iGUIWidth = 32 + 4*$g_iGroupWidth
-	global $g_iGUIHeight = 350
+	global $g_iGUIWidth = 32 + 4 * $g_iGroupWidth
+	global $g_iGUIHeight = 300
 
 	local $sTitle = not @Compiled ? "Test" : StringFormat("D2Stats %s - [%s]", FileGetVersion(@AutoItExe, "FileVersion"), FileGetVersion(@AutoItExe, "Comments"))
 
@@ -1946,12 +1869,6 @@ func CreateGUI()
 	global $g_idTab = GUICtrlCreateTab(0, 0, $g_iGUIWidth, 0, $TCS_FOCUSNEVER)
 	GUICtrlSetResizing (-1, $GUI_DOCKMENUBAR)
 	GUICtrlSetOnEvent(-1, "OnClick_Tab")
-
-	local $idDummySelectAll = GUICtrlCreateDummy()
-	GUICtrlSetOnEvent(-1, "DummySelectAll")
-
-	local $avAccelKeys[][2] = [ ["^a", $idDummySelectAll] ]
-	GUISetAccelerators($avAccelKeys)
 
 #Region Stats
 	GUICtrlCreateTabItem("Basic")
@@ -2117,6 +2034,10 @@ func CreateGUI()
 	
 	global $g_idNotifySave = GUICtrlCreateButton("Save", 4 + 0*62, $iBottomButtonCoords, 60, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_NotifySave")
+	; Add Ctrl + S as hotkey for saving notifier
+	local $avAccelKeys[][2] = [ ["^s", $g_idNotifySave] ]
+	GUISetAccelerators($avAccelKeys)
+
 	global $g_idNotifyReset = GUICtrlCreateButton("Reset", 4 + 1*62, $iBottomButtonCoords, 60, 25)
 	GUICtrlSetOnEvent(-1, "OnClick_NotifyReset")
 	global $g_idNotifyTest = GUICtrlCreateButton("Help", 4 + 2*62, $iBottomButtonCoords, 60, 25)
@@ -2266,12 +2187,6 @@ func LoadGUIVolume()
 			if ($iIndex < $g_iNumSounds) then _GUI_Volume($iIndex, $iValue)
 		next
 	endif
-endfunc
-
-func DummySelectAll()
-    local $hWnd = _WinAPI_GetFocus()
-    local $sClass = _WinAPI_GetClassName($hWnd)
-    if ($sClass == "Edit") then _GUICtrlEdit_SetSel($hWnd, 0, -1)
 endfunc
 
 Func WM_COMMAND($hWnd, $iMsg, $wParam, $lParam)
@@ -2424,94 +2339,6 @@ func WriteWString($sString)
 	if (@error) then return _Log("WriteWString", "Failed to write string.")
 
 	return True
-endfunc
-
-func GetDropFilterHandle()
-	if (not WriteString("DropFilter.dll")) then return _Debug("GetDropFilterHandle", "Failed to write string.")
-
-	local $pGetModuleHandleA = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "GetModuleHandleA")
-	if (not $pGetModuleHandleA) then return _Debug("GetDropFilterHandle", "Couldn't retrieve GetModuleHandleA address.")
-
-	return RemoteThread($pGetModuleHandleA, $g_pD2InjectString)
-endfunc
-
-#cs
-D2Client.dll+5907E - 83 3E 04              - cmp dword ptr [esi],04 { 4 }
-D2Client.dll+59081 - 0F85
--->
-D2Client.dll+5907E - E9 *           - jmp DropFilter.dll+15D0 { PATCH_DropFilter }
-#ce
-
-func InjectDropFilter()
-	local $sPath = FileGetLongName("DropFilter.dll", $FN_RELATIVEPATH)
-	if (not FileExists($sPath)) then return _Debug("InjectDropFilter", "Couldn't find DropFilter.dll. Make sure it's in the same folder as " & @ScriptName & ".")
-	if (not WriteString($sPath)) then return _Debug("InjectDropFilter", "Failed to write DropFilter.dll path.")
-
-	local $pLoadLibraryA = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "LoadLibraryA")
-	if (not $pLoadLibraryA) then return _Debug("InjectDropFilter", "Couldn't retrieve LoadLibraryA address.")
-
-	local $iRet = RemoteThread($pLoadLibraryA, $g_pD2InjectString)
-	if (@error) then return _Debug("InjectDropFilter", "Failed to create remote thread.")
-
-	local $bInjected = 233 <> _MemoryRead($g_hD2Client + 0x5907E, $g_ahD2Handle, "byte")
-
-	; TODO: Check if this is still needed
-	if ($iRet and $bInjected) then
-		local $hDropFilter = _WinAPI_LoadLibrary("DropFilter.dll")
-		if ($hDropFilter) then
-			local $pEntryAddress = _WinAPI_GetProcAddress($hDropFilter, "_PATCH_DropFilter@0")
-			if ($pEntryAddress) then
-				local $pJumpAddress = $pEntryAddress - 0x5 - ($g_hD2Client + 0x5907E)
-				_MemoryWrite($g_hD2Client + 0x5907E, $g_ahD2Handle, "0xE9" & SwapEndian($pJumpAddress), "byte[5]")
-			else
-				_Debug("InjectDropFilter", "Couldn't find DropFilter.dll entry point.")
-				$iRet = 0
-			endif
-			_WinAPI_FreeLibrary($hDropFilter)
-		else
-			_Debug("InjectDropFilter", "Failed to load DropFilter.dll.")
-			$iRet = 0
-		endif
-	endif
-
-	return $iRet
-endfunc
-
-func EjectDropFilter($hDropFilter)
-	local $pFreeLibrary = _WinAPI_GetProcAddress(_WinAPI_GetModuleHandle("kernel32.dll"), "FreeLibrary")
-	if (not $pFreeLibrary) then return _Debug("EjectDropFilter", "Couldn't retrieve FreeLibrary address.")
-
-	local $iRet = RemoteThread($pFreeLibrary, $hDropFilter)
-	if (@error) then return _Debug("EjectDropFilter", "Failed to create remote thread.")
-
-	if ($iRet) then _MemoryWrite($g_hD2Client + 0x5907E, $g_ahD2Handle, "0x833E040F85", "byte[5]")
-
-	return $iRet
-endfunc
-
-#cs
-D2Client.dll+42AE1 - A3 *                  - mov [D2Client.dll+11C3DC],eax { [00000000] }
-D2Client.dll+42AE6 - A3 *                  - mov [D2Client.dll+11C3E0],eax { [00000000] }
-->
-D2Client.dll+42AE1 - 90                    - nop
-D2Client.dll+42AE2 - 90                    - nop
-D2Client.dll+42AE3 - 90                    - nop
-D2Client.dll+42AE4 - 90                    - nop
-D2Client.dll+42AE5 - 90                    - nop
-D2Client.dll+42AE6 - 90                    - nop
-D2Client.dll+42AE7 - 90                    - nop
-D2Client.dll+42AE8 - 90                    - nop
-D2Client.dll+42AE9 - 90                    - nop
-D2Client.dll+42AEA - 90                    - nop
-#ce
-
-func IsMouseFixEnabled()
-	return _MemoryRead($g_hD2Client + 0x42AE1, $g_ahD2Handle, "byte") == 0x90
-endfunc
-
-func ToggleMouseFix()
-	local $sWrite = IsMouseFixEnabled() ? "0xA3" & SwapEndian($g_hD2Client + 0x11C3DC) & "A3" & SwapEndian($g_hD2Client + 0x11C3E0) : "0x90909090909090909090"
-	_MemoryWrite($g_hD2Client + 0x42AE1, $g_ahD2Handle, $sWrite, "byte[10]")
 endfunc
 
 #cs
