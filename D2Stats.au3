@@ -698,14 +698,14 @@ func NotifierCache()
 			$asMatch = StringRegExp($sName, "[1-4]|\Q(Sacred)\E|\Q(Angelic)\E|\Q(Masterworked)\E", $STR_REGEXPARRAYGLOBALMATCH)
 			if (not @error) then
 				Select
-					Case $asMatch[0] == "(Sacred)"
+					Case $asMatch == "(Sacred)"
 						$sTier = "sacred"
-					Case $asMatch[0] == "(Angelic)"
+					Case $asMatch == "(Angelic)"
 						$sTier = "angelic"
-					Case $asMatch[0] == "(Masterworked)"
+					Case $asMatch == "(Masterworked)"
 						$sTier = "master"
 					Case Else
-						$sTier = $asMatch[0]
+						$sTier = $asMatch
 				EndSelect
 			Endif
 		endif
