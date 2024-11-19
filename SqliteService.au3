@@ -36,6 +36,7 @@ Func InitializeDatabase($sDBPath)
         MsgBox(16, "SQLite Error", "Failed to create ItemStash: " & _SQLite_ErrMsg())
     EndIf
 
+    ; Todo: extend with MF value
     If _SQLite_Exec($g_hDB, "CREATE TABLE IF NOT EXISTS ItemDrops (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Location TEXT, Character TEXT, Date TEXT);") <> $SQLITE_OK Then
         MsgBox(16, "SQLite Error", "Failed to create ItemDrops: " & _SQLite_ErrMsg())
     EndIf
@@ -48,6 +49,7 @@ EndFunc
 ; Function to insert a new entry into ItemDrops
 Func AddItemDrop($sName, $sLocation, $sCharacter, $sDate)
     ; Prepare the SQL statement
+    ; Todo: extend with MF value
     Local $sSQL = "INSERT INTO ItemDrops (Name, Location, Character, Date) VALUES ('" & _
                     StringReplace($sName, "'", "''") & "', '" & _
                     StringReplace($sLocation, "'", "''") & "', '" & _
@@ -56,7 +58,7 @@ Func AddItemDrop($sName, $sLocation, $sCharacter, $sDate)
 
     ; Execute the query
     If _SQLite_Exec($g_hDB, $sSQL) <> $SQLITE_OK Then
-        MsgBox(16, "SQLite Error", "Failed to add item drop: " & _SQLite_ErrMsg())
+        MsgBox(16, "SQLite Error", "Failed to execute query AddItemDrop: " & _SQLite_ErrMsg())
         Return False
     EndIf
 
@@ -79,7 +81,7 @@ Func ModifyItemCustomList($sName, $sItemName, $bAdd = True)
 
     ; Execute the query
     If _SQLite_Exec($g_hDB, $sSQL) <> $SQLITE_OK Then
-        MsgBox(16, "SQLite Error", "Failed to modify custom list: " & _SQLite_ErrMsg())
+        MsgBox(16, "SQLite Error", "Failed to execute query ModifyItemCustomList: " & _SQLite_ErrMsg())
         Return False
     EndIf
 
@@ -96,7 +98,7 @@ Func GetItemsByCustomListName($sName)
 
     ; Execute the SQL query
     If _SQLite_Query($g_hDB, $sSQL, $hQuery) <> $SQLITE_OK Then
-        MsgBox(16, "SQLite Error", "Failed to execute query: " & _SQLite_ErrMsg())
+        MsgBox(16, "SQLite Error", "Failed to execute query GetItemsByCustomListName: " & _SQLite_ErrMsg())
         Return $aResults
     EndIf
 
@@ -127,7 +129,13 @@ EndFunc
 ; Function to delete all entries related to a Name in ItemCustomLists
 Func DeleteCustomListByName($sName)
     Local $sSQL = "DELETE FROM ItemCustomLists WHERE Name = '" & StringReplace($sName, "'", "''") & "';"
-    _SQLite_Exec($g_hDB, $sSQL)
+    ;_SQLite_Exec($g_hDB, $sSQL)
+
+    ; Execute the SQL query
+    If _SQLite_Exec($g_hDB, $sSQL) <> $SQLITE_OK Then
+      MsgBox(16, "SQLite Error", "Failed to execute query GetUniqueCustomLists: " & _SQLite_ErrMsg())
+      Return $aResults
+  EndIf
 EndFunc
 
 ; Function to get all unique custom lists by name
@@ -139,7 +147,7 @@ Func GetUniqueCustomLists()
 
     ; Execute the SQL query
     If _SQLite_Query($g_hDB, $sSQL, $hQuery) <> $SQLITE_OK Then
-        MsgBox(16, "SQLite Error", "Failed to execute query: " & _SQLite_ErrMsg())
+        MsgBox(16, "SQLite Error", "Failed to execute query GetUniqueCustomLists: " & _SQLite_ErrMsg())
         Return $aResults
     EndIf
 

@@ -148,6 +148,12 @@ func DefineGlobals()
 	]
 	global $g_goblinIds = [2774, 2775, 2776, 2779, 2780, 2781, 2784, 2785, 2786, 2787, 2788, 2789, 2790, 2791, 2792, 2793, 2794, 2795, 2799, 2802, 2803, 2805]
 	global $g_goblinBuffer[] = []
+
+  ; ItemSearch OptionList - elGringo
+  global $g_avGUIItemSearchOptionList[][3] = [ _
+    ["medianxl_sid", "", "MedianXL sID from the armory website in the cookies"], _
+    ["characters", "", "List of your characters. Comma separated without spaces"] _
+  ]
 endfunc
 #EndRegion
 
@@ -1119,23 +1125,23 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
 
 		local $asItem = GetItemName($pCurrentUnit)
 		local $asItemName = UBound($asItem) == 3 ? $asItem[2] : ""
-        local $asItemType = $asItem[1]
-        local $asItemStats = ""
-        local $iItemColor = $bNotEquipment ? $ePrintOrange : $g_iQualityColor[$iQuality]
-        local $sPreName = ""
-		
-        ; collect a reversed 2d array of stats and color
-        ; to display as notifications per line
-        if (UBound($asStatGroups) or $bDisplayItemStats) then
-			local $sGetItemStats = GetItemStats($pCurrentUnit)
-			local $iSocketCount = GetUnitStat($oFlags.item('$pCurrentUnit'), 0xC2)
-			if $iQuality > 0 and $iQuality < 5 then
-				$sGetItemStats = "Socketed (" & $iSocketCount & ")" & @CRLF & $sGetItemStats
-			endif
-			$asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
+      local $asItemType = $asItem[1]
+      local $asItemStats = ""
+      local $iItemColor = $bNotEquipment ? $ePrintOrange : $g_iQualityColor[$iQuality]
+      local $sPreName = ""
+  
+      ; collect a reversed 2d array of stats and color
+      ; to display as notifications per line
+      if (UBound($asStatGroups) or $bDisplayItemStats) then
+        local $sGetItemStats = GetItemStats($pCurrentUnit)
+        local $iSocketCount = GetUnitStat($oFlags.item('$pCurrentUnit'), 0xC2)
+        if $iQuality > 0 and $iQuality < 5 then
+          $sGetItemStats = "Socketed (" & $iSocketCount & ")" & @CRLF & $sGetItemStats
+        endif
+        $asItemStats = HighlightStats($sGetItemStats, $asStatGroups, $bIsMatchByStats)
             $oFlags.add('$bIsMatchByStats', $bIsMatchByStats)
         endif
-		
+    
         ; Don't display notification if no match by stats from rule
         if (UBound($asStatGroups) and not $bIsMatchByStats) then
             if ($bDelayedHideItem) then
@@ -1145,8 +1151,8 @@ func FormatNotifications(byref $asPreNotificationsPool, $bDelayedHideItem)
                 exitloop
             endif
             ; else just skip item
-			continueloop
-        endif
+        continueloop
+      endif
 
 		; Notifications section. Assembling text, collecting in pool
 		if ($bIsEthereal) then
@@ -1311,26 +1317,26 @@ func HighlightStats($sGetItemStats, $asStatGroups, byref $bIsMatchByStats)
 	local $aColoredStats[$asStats[0]][2]
 	local $iMatchCounter = 0
 
-    for $k = 1 to $asStats[0]
-        local $sStat = $asStats[$k]
-		
-		$aColoredStats[$asStats[0] - $k][0] = $sStat
-        $aColoredStats[$asStats[0] - $k][1] = $ePrintBlue
-		
-        $aPlainStats[$asStats[0] - $k][0] = $sStat
-        $aPlainStats[$asStats[0] - $k][1] = $ePrintBlue
-		
-        for $i = 0 to UBound($asStatGroups) - 1
-            if ($asStatGroups[$i] == "" or $aColoredStats[$asStats[0] - $k][1] == $ePrintRed) then
-                continueloop
-            endif
+  for $k = 1 to $asStats[0]
+      local $sStat = $asStats[$k]
+  
+      $aColoredStats[$asStats[0] - $k][0] = $sStat
+      $aColoredStats[$asStats[0] - $k][1] = $ePrintBlue
+  
+      $aPlainStats[$asStats[0] - $k][0] = $sStat
+      $aPlainStats[$asStats[0] - $k][1] = $ePrintBlue
+  
+      for $i = 0 to UBound($asStatGroups) - 1
+          if ($asStatGroups[$i] == "" or $aColoredStats[$asStats[0] - $k][1] == $ePrintRed) then
+              continueloop
+          endif
 
-            if (StringRegExp(StringLower($sStat), StringLower($asStatGroups[$i]))) then
-                $aColoredStats[$asStats[0] - $k][1] = $ePrintRed
-                $iMatchCounter += 1
-            endif
-        next
-    next
+          if (StringRegExp(StringLower($sStat), StringLower($asStatGroups[$i]))) then
+              $aColoredStats[$asStats[0] - $k][1] = $ePrintRed
+              $iMatchCounter += 1
+          endif
+      next
+  next
 	
 	if ($iMatchCounter >= UBound($asStatGroups)) then
 		$bIsMatchByStats = True
@@ -2005,6 +2011,7 @@ func CreateGUI()
 #EndRegion
 
 	LoadGUISettings()
+  LoadItemSearchGUISettings()
 	_GUI_GroupX(8)
 
 	GUICtrlCreateTabItem("Options")
@@ -2081,19 +2088,21 @@ func CreateGUI()
 
     ; Top Section: Item Fetch Functionality
     Global $g_idItemFetchGroup = GUICtrlCreateGroup("Item Fetch", 10, 20, $g_iGUIWidth - 20, 150)
-    Global $g_idMedianXLsidLabel = GUICtrlCreateLabel("MedianXL SID:", 20, 40, 80, 20)
-    Global $g_idMedianXLsid = GUICtrlCreateInput("", 110, 40, 200, 20)
-    Global $g_idDumpAll = GUICtrlCreateCheckbox("Dump All", 320, 40, 80, 20)
+    Global $g_idMedianXLsidLabel = GUICtrlCreateLabel("MedianXL SID:", 20, 40, 150, 20)
+    Global $g_idMedianXLsid = GUICtrlCreateInput("", 110, 40, 300, 20)
     Global $g_idCharactersLabel = GUICtrlCreateLabel("Characters:", 20, 70, 80, 20)
     Global $g_idCharacters = GUICtrlCreateInput("", 110, 70, 300, 20)
     Global $g_idFilterSU = GUICtrlCreateCheckbox("SU", 20, 100, 50, 20)
     GUICtrlSetState(-1, $GUI_CHECKED)
     Global $g_idFilterSSU = GUICtrlCreateCheckbox("SSU", 80, 100, 50, 20)
     GUICtrlSetState(-1, $GUI_CHECKED)
-    Global $g_idFilterSet = GUICtrlCreateCheckbox("Set", 140, 100, 50, 20)
+    Global $g_idFilterSSSU = GUICtrlCreateCheckbox("SSSU", 140, 100, 50, 20)
     GUICtrlSetState(-1, $GUI_CHECKED)
-    Global $g_idFetchItems = GUICtrlCreateButton("Fetch Items", 200, 100, 120, 30)
+    Global $g_idFilterSet = GUICtrlCreateCheckbox("Set", 200, 100, 50, 20)
+    GUICtrlSetState(-1, $GUI_CHECKED)
+    Global $g_idFetchItems = GUICtrlCreateButton("Fetch Items", 330, 130, 120, 30)
     GUICtrlSetOnEvent(-1, "OnClick_FetchItems")
+    Global $g_idDumpAll = GUICtrlCreateCheckbox("Dump All", 330, 100, 80, 20)
     Global $g_idLastFetched = GUICtrlCreateLabel("Last Fetched: -", 20, 130, 200, 20)
     GUICtrlCreateGroup("", -99, -99, 1, 1) ; Close group
 
@@ -2111,7 +2120,7 @@ func CreateGUI()
 
 	; Bottom Section: Custom List Management
     Global $g_idCustomListsGroup = GUICtrlCreateGroup("Custom Lists", 10, 180, $g_iGUIWidth - 20, $g_iGUIHeight - 190)
-    Global $g_idCustomListsList = GUICtrlCreateList("", 20, 200, 300, 200)
+    Global $g_idCustomListsList = GUICtrlCreateList("", 20, 200, 150, 200)
     GUICtrlSetOnEvent(-1, "OnSelect_CustomList")
 
     ; Add buttons for list management
@@ -2121,8 +2130,8 @@ func CreateGUI()
     GUICtrlSetOnEvent(-1, "OnClick_RemoveCustomList")
 
     ; Display selected list items
-    Global $g_idSelectedItemsLabel = GUICtrlCreateLabel("Items in List:", 340, 200, 150, 20)
-    Global $g_idSelectedItemsList = GUICtrlCreateList("", 340, 220, $g_iGUIWidth - 360, 160)
+    Global $g_idSelectedItemsLabel = GUICtrlCreateLabel("Items in List:", 180, 200, 150, 20)
+    Global $g_idSelectedItemsList = GUICtrlCreateList("", 180, 220, 270, 175)
 
     ; Add buttons for item management
     Global $g_idDeleteItem = GUICtrlCreateButton("Delete Item", 340, 420, 100, 30)
@@ -2186,19 +2195,30 @@ Func OnClick_FetchItems()
     Local $sFilters = ""
     If GUICtrlRead($g_idFilterSU) = $GUI_CHECKED Then $sFilters &= "SU,"
     If GUICtrlRead($g_idFilterSSU) = $GUI_CHECKED Then $sFilters &= "SSU,"
+    If GUICtrlRead($g_idFilterSSSU) = $GUI_CHECKED Then $sFilters &= "SSSU,"
     If GUICtrlRead($g_idFilterSet) = $GUI_CHECKED Then $sFilters &= "Set,"
     $sFilters = StringTrimRight($sFilters, 1) ; Remove trailing comma
 
+    ; Check if the inputs have changed since we last fetched them from the .ini
+    ; Save them if it is the case
+    ;SaveItemSearchGUISettings()k
+    If (Not $sSID == $g_avGUIItemSearchOptionList[0][1]) Or (Not $sCharacters == $g_avGUIItemSearchOptionList[1][1]) Then
+      SaveItemSearchGUISettings()
+    EndIf
+
     ; Build the command-line arguments
-    Local $sParams = ""
-    If GUICtrlRead($g_idDumpAll) = $GUI_CHECKED Then $sParams &= "-dump "
-    $sParams &= "-sid " & $sSID & " -c " & $sCharacters & " -f " & $sFilters
+    Local $sParams = "-sid " & $sSID
+    If GUICtrlRead($g_idDumpAll) = $GUI_CHECKED Then $sParams &= " -dump"
+    If Not $sFilters == "" Then $sParams &= " -f " & $sFilters
+    If Not $sCharacters == "" Then $sParams &= " -c " & $sCharacters
+
+    $sParams &= "-sid " & $sSID & " -p " & @ScriptDir
 
     ; Execute the external program
     RunWait(@ScriptDir & "\MedianXLMulerConsole.exe " & $sParams, @ScriptDir)
 
     ; Update the last fetched label
-    GUICtrlSetData($g_idLastFetched, "Last Fetched: " & @HOUR & ":" & @MIN & ":" & @SEC)
+    GUICtrlSetData($g_idLastFetched, "Last Fetched: " & @HOUR & ":" & @MIN)
 EndFunc
 
 ; Refresh the custom lists in the GUI
@@ -2230,7 +2250,7 @@ Func OnClick_DeleteItem()
     If $sSelectedList = "" Or $sSelectedItem = "" Then Return
 
     ; Delete the selected item
-	DeleteCustomListEntry($sSelectedList, $sSelectedItem)
+	  DeleteCustomListEntry($sSelectedList, $sSelectedItem)
     
     ; Refresh the items list
     OnSelect_CustomList()
@@ -2241,12 +2261,52 @@ Func OnClick_RemoveCustomList()
     If $sSelectedList = "" Then Return
 
     ; Delete the entire list
-	DeleteCustomListByName($sSelectedList)
+	  DeleteCustomListByName($sSelectedList)
 
-	; Refresh the custom lists and clear the items list
+	  ; Refresh the custom lists and clear the items list
     RefreshCustomLists()
     GUICtrlSetData($g_idSelectedItemsList, "")
 EndFunc
+
+; ItemSearch Options
+func _GUI_ItemSearchOptionExists($sOption)
+	for $i = 0 to UBound($g_avGUIItemSearchOptionList) - 1
+		if ($g_avGUIItemSearchOptionList[$i][0] == $sOption) then return True
+	next
+	return False
+endfunc
+
+func _GUI_ItemSearchOptionID($sOption)
+	for $i = 0 to UBound($g_avGUIItemSearchOptionList) - 1
+		if ($g_avGUIItemSearchOptionList[$i][0] == $sOption) then return $i
+	next
+	_Log("_GUI_ItemSearchOptionID", "Invalid option '" & $sOption & "'")
+	exit
+endfunc
+
+func SaveItemSearchGUISettings()
+	local $sWrite = ""
+
+  Local $sSID = StringToBinary(GUICtrlRead($g_idMedianXLsid))
+  $sWrite &= StringFormat("%s=%s%s", $g_avGUIItemSearchOptionList[0][0], $sSID, @LF)
+
+  Local $sCharacters = StringToBinary(StringStripWS(GUICtrlRead($g_idCharacters), $STR_STRIPALL))
+  $sWrite &= StringFormat("%s=%s%s", $g_avGUIItemSearchOptionList[1][0], $sCharacters, @LF)
+  
+	IniWriteSection(@AutoItExe & ".ini", "ItemSearch", $sWrite)
+endfunc
+
+func LoadItemSearchGUISettings()
+	local $asIniItemSearch = IniReadSection(@AutoItExe & ".ini", "ItemSearch")
+	if (not @error) then
+		for $i = 1 to $asIniItemSearch[0][0]
+			if (_GUI_ItemSearchOptionExists($asIniItemSearch[$i][0])) then
+        local $iOptionId = _GUI_ItemSearchOptionID($asIniItemSearch[$i][0])
+        $g_avGUIItemSearchOptionList[$iOptionId][1] = BinaryToString($asIniItemSearch[$i][1])
+			endif
+		next
+	endif
+endfunc
 
 ###EndRegion 
 
